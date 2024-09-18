@@ -1,0 +1,16 @@
+import "./a-ref.js";
+import "./a-def.js";
+import "./a-bind.js";
+import "./a-init.js";
+import "./a-effect.js";
+import "./a-confirm.js";
+import "./a-xhr.js";
+import "./a-on.js";
+import "./a-for.js";
+import "./a-if.js";
+import "./a-show.js";
+import "./a-navigate.js";
+import "./a-transition.js";
+import "./a-loading.js";
+import "./a-offline.js";
+import "./a-stream.js";
