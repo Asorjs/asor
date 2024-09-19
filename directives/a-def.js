@@ -7,7 +7,7 @@ import { setData, delData, updateData } from "../features/supportDataStore.js";
 
 directive("def", ({ el, directive }) => {
     try {
-        let expression = directive.expression?.trim();
+        let expression = directive.expression;
         expression = expression === '' ? '{}' : expression
        
         const rawData = parseDataAttribute(expression, el);
