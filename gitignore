@@ -1,6 +1,6 @@
 node_modules
 scratch.md
-dist/
+dist
 .env.json
 .idea
 .env
