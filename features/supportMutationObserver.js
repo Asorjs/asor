@@ -1,6 +1,5 @@
 import { handleError } from "../utils/logger.js";
 import { DATA_ATTRIBUTE_PREFIX, updateData2 } from "./supportDataStore.js";
-import { requestIdleCallback } from "../utils/idle-callback.js";
 import { isFunction } from "../utils/types.js";
 
 const MUTATION_TYPES = { CHILD_LIST: 'childList', ATTRIBUTES: 'attributes' };

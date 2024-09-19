@@ -1,7 +1,14 @@
 {
-  "main": "dist/asor.js",
   "name": "asor",
-  "version": "1.0.0",
+  "description": "JavaScript framework for dynamic web applications",
+  "version": "0.0.1",
+  "main": "dist/asor.js",
+  "module": "dist/asor.module.esm",
+  "unpkg": "dist/asor.min.js",
+  "keywords": ["asor", "asorjs", "framework", "directives", "reactivity", "javascript"],
+  "author": "Juan Cristobal",
+  "license": "MIT",
+
   "scripts": {
     "build": "node ./scripts/build.js",
     "watch": "node ./scripts/build.js --watch",
@@ -9,16 +16,12 @@
     "vbuild": "vite build",
     "preview": "vite preview"  
   },
-  "author": "Juan Cristobal",
-  "license": "MIT",
+
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "brotli-size": "^4.0.0",
     "esbuild": "^0.14.49",
     "eslint": "^9.9.1",
     "globals": "^15.9.0"
-  },
-  "dependencies": {
-    "vite": "^5.4.5"
   }
 }

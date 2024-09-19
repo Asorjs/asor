@@ -25,17 +25,14 @@ export const generateStateHash = (length = 36) => Math.random().toString(length)
 export function findElementsWithAsorDirectives(root = document.body, prefixes = ["a-", "@", ":"]) {
     const elements = [];
     const iterator = document.createNodeIterator(
-        root,
-        NodeFilter.SHOW_ELEMENT,
-        {
-            acceptNode: (node) => 
-                Array.from(node.attributes).some((attr) => prefixes.some((prefix) => attr.name.startsWith(prefix)))
-                    ? NodeFilter.FILTER_ACCEPT
-                    : NodeFilter.FILTER_SKIP
-        }
+      root,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => Array.from(node.attributes).some((attr) => prefixes.some((prefix) => attr.name.startsWith(prefix))) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+      }
     );
-  
     let currentNode;
-    while ((currentNode = iterator.nextNode())) elements.push(currentNode);
+    while ((currentNode = iterator.nextNode())) // Corregido
+      elements.push(currentNode);
     return elements;
 }
