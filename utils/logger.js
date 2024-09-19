@@ -1,4 +1,4 @@
-import { isElement, isFunction } from "./types.js";
+import { isFunction } from "./types.js";
 
   export function warn(message, context = {}, ...args) {
     logMessage("Warning", message, context, ...args);
@@ -25,32 +25,16 @@ import { isElement, isFunction } from "./types.js";
     }
   }
   
-  function logMessage(type, message, context = {}, ...args) {
-    const { el, expression, component } = context;
-    const timestamp = new Date().toISOString();
-    const details = { message, el, expression, component, timestamp, additionalInfo: args };
-  
-    // Normalize the log type and obtain the appropriate log function
-    const normalizedType = type.toLowerCase();
-    const logFunction = console[normalizedType] || console.log;
-  
-    console.groupCollapsed(`%c[Asor ${type}]: ${message}`, `color: ${normalizedType === "error" ? "#FF0000" : "#FFA500"}; font-weight: bold;`);
-    logFunction(message);
-    if (component) logFunction(`Component: ${component}`);
-    if (expression) logFunction(`Expression: "${expression}"`);
-    if (el && isElement(el)) logFunction("Element:", el);
-    logFunction("Timestamp:", timestamp);
-  
-    if (args.length > 0) {
-      console.groupCollapsed("Additional Info");
-      args.forEach((arg, index) => logFunction(`Argument ${index + 1}:`, arg));
-      console.groupEnd();
-    }
-    console.groupCollapsed(`${type} Details`);
-    logFunction(details);
-    console.groupEnd();
-    console.groupCollapsed("Stack Trace");
-    console.trace();
-    console.groupEnd();
-    console.groupEnd();
-  }
+
+function logMessage(type, message, context = {}, ...args) {
+  const { el, expression, component } = context;
+  const timestamp = new Date().toISOString();
+  const details = { message, el, expression, component, timestamp, additionalInfo: args };
+  const color = type.toLowerCase() === "error" ? "#FF0000" : "#FFA500";
+
+  console.groupCollapsed(`%c[Asor ${type}]: ${message}`, `color: ${color}; font-weight: bold;`);
+  console.log(details);
+  console.groupCollapsed("Stack Trace");
+  console.trace();
+  console.groupEnd();
+}

@@ -12,26 +12,34 @@ const HTTP_METHODS = ["get", "post", "put", "patch", "delete"];
 
 const handlerPool = new WeakMap();
 
-const EVENT_MAP = { form: "submit", select: "change", textarea: "input", button: "click", details: "toggle", audio: "play", video: "play"};
-
-const INPUT_EVENT_MAP = {
-  button: "click", submit: "click", reset: "click", checkbox: "change", radio: "change", file: "change", date: "change", time: "change", "datetime-local": "change"
-};
-
 export const getRequestMethodFromDirective = (directive) => HTTP_METHODS.includes(directive.value?.toLowerCase()) ? directive.value.toLowerCase() : "get";
 
-export const getDefaultEventType = (el) => {
-  if (!el?.tagName) {
-    warn("Invalid element provided to getDefaultEventType");
-    return "click";
-  }
+const EVENT_TYPE_MAP = {
+  form: "submit",
+  select: "change",
+  textarea: "input",
+  button: "click",
+  input: {
+    button: "click",
+    submit: "click",
+    reset: "click",
+    checkbox: "change",
+    radio: "change",
+    file: "change",
+    date: "change",
+    time: "change",
+    "datetime-local": "change",
+  },
+  default: "click",
+};
 
+export function getDefaultEventType(el) {
   const tagName = el.tagName.toLowerCase();
   const type = (el.type || "").toLowerCase();
-  return tagName === "input" ? INPUT_EVENT_MAP[type] || "input"
-    : tagName === "a" ? (el.href ? "click" : "mousedown")
-    : EVENT_MAP[tagName] || (el.isContentEditable ? "input" : (el.getAttribute("tabindex") !== null ? "focus" : "click"));
-};
+  
+  if (tagName === "input") return EVENT_TYPE_MAP.input[type] || "input";
+  return EVENT_TYPE_MAP[tagName] || (el.isContentEditable ? "input" : el.getAttribute("tabindex") !== null ? "focus" : EVENT_TYPE_MAP.default);
+}
 
 export const createEventHandler = (el, handler, options = {}) => {
   const { preventDefault, stopPropagation, once, delay, throttleTime, passive, keyModifiers, self } = {

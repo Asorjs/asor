@@ -5,13 +5,13 @@ import { handleError } from './utils/logger.js';
 const directiveCache = new WeakMap();
 const directiveHandlers = new Map();
 
-const getDirectiveRegex = (() => {
-    const cache = new Map();
-    return (prefixes) => {
-        const key = prefixes.join('|');
-        return cache.get(key) || cache.set(key, new RegExp(`^(?:${key})([^\\s.:]+)(?:\\.[^\\s.:]+)*(?::[^\\s]+)?\\s*`)).get(key);
-    };
-})();
+const cacheRagex = new Map();
+function getDirectiveRegex(prefixes) {
+  const key = prefixes.join("|");
+  if (!cacheRagex.has(key)) cacheRagex.set(key, new RegExp(`^(?:${key})([^\\s.:]+)(?:\\.[^\\s.:]+)*(?::[^\\s]+)?\\s*`));
+
+    return cacheRagex.get(key);
+}
 
 const normalizeDirectiveName = (name) => {
     if (!name) throw new Error('Directive name is required');
