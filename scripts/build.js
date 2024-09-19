@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 const brotliSize = require("brotli-size");
-const crypto = require("crypto");
 const esbuild = require("esbuild");
 
 // Function to ensure a directory exists
