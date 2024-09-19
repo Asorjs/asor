@@ -11,10 +11,7 @@
 
   "scripts": {
     "build": "node ./scripts/build.js",
-    "watch": "node ./scripts/build.js --watch",
-    "lint": "eslint .",
-    "vbuild": "vite build",
-    "preview": "vite preview"  
+    "watch": "node ./scripts/build.js --watch"
   },
 
   "devDependencies": {

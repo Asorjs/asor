@@ -23,6 +23,8 @@ Asor es compatible con la mayoría de los navegadores modernos.
 Asor utiliza un sistema de directivas que extiende el HTML, permitiéndote agregar funcionalidad dinámica a tus elementos de manera declarativa. Por ejemplo:
 
 ```html
+<script src="//unpkg.com/asor@latest/dist/asor.min.js" defer></script>
+
 <div a-def="{ count: 0 }">
   <p :text="count"></p>
   <button @click="count++">Incrementar</button>
