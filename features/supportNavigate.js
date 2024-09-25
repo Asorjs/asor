@@ -149,9 +149,7 @@ export class NavigationManager {
         requestAnimationFrame(() => {
             document.body.style.transition = "opacity 0.3s";
             document.body.style.opacity = "1";
-            setTimeout(() => {
-                document.body.style.transition = "";
-            }, 300);
+            setTimeout(() => { document.body.style.transition = ""; }, 300);
         });
     }
 
@@ -273,9 +271,7 @@ export class NavigationManager {
             const fullUrl = new URL(url, window.location.origin).href;
             const response = await fetch(fullUrl, {
                 method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                },
+                headers: { "X-Requested-With": "XMLHttpRequest" },
                 signal: AbortSignal.timeout(10000), // 10 secons of timeout
             });
 
