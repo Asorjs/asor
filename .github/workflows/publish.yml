@@ -64,30 +64,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Paso 10: Verificar si la etiqueta ya existe
-      - name: Check if tag exists
-        id: check_tag
+      # Paso 10: Verificar la nueva versión (Depuración)
+      - name: Verify new version
         run: |
-          TAG_NAME="v$(node -p "require('./package.json').version")"
-          echo "Checking for tag $TAG_NAME"
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Tag $TAG_NAME does not exist."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version is $NEW_VERSION"
 
-      # Paso 11: Condicional para empujar cambios solo si la etiqueta no existe
+      # Paso 11: Empujar cambios y etiquetas
       - name: Push changes
-        if: steps.check_tag.outputs.exists == 'false'
         run: git push origin main --follow-tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Paso 12: Publicar en npm solo si la etiqueta fue creada y empujada
+      # Paso 12: Publicar en npm
       - name: Publish to npm
-        if: steps.check_tag.outputs.exists == 'false'
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
