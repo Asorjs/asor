@@ -17,8 +17,10 @@ jobs:
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
+            echo "package-lock.json found, running npm ci"
             npm ci
           else
+            echo "No package-lock.json found, running npm install"
             npm install
           fi
       - run: npm test
