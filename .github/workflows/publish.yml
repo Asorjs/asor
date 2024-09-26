@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20  # Actualizamos a Node.js 20 para asegurar compatibilidad con ES modules
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://registry.npmjs.org/'
 
       # Paso 3: Instalar dependencias
       - name: Install dependencies
