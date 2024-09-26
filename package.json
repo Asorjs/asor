@@ -4,12 +4,10 @@
   "author": "Juan Cristobal",
   "license": "MIT",
   "type": "module",
-  "version": "0.0.1",
-
+  "version": "0.0.2",
   "main": "dist/asor.js",
   "module": "dist/asor.module.esm",
   "unpkg": "dist/asor.min.js",
-
   "keywords": [
     "asor",
     "asorjs",
@@ -18,13 +16,11 @@
     "reactivity",
     "javascript"
   ],
-
   "scripts": {
     "build": "node ./scripts/build.js",
     "watch": "node ./scripts/build.js --watch",
     "test": "echo \"No tests specified\" && exit 0"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "brotli-size": "^4.0.0",
