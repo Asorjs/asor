@@ -12,21 +12,18 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '20'  # o la versión que uses
+          node-version: '20'  # Actualizamos a Node.js 20 para asegurar compatibilidad con ES modules
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            echo "package-lock.json found, running npm ci"
-            npm ci
-          else
-            echo "No package-lock.json found, running npm install"
-            npm install
-          fi
-      - run: npm test
-      - run: npm run build  # si tienes un script de build
-      - run: npm version patch  # incrementa la versión
-      - run: npm publish
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Increment version
+        run: npm version patch
+      - name: Publish to npm
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Push changes

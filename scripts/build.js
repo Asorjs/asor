@@ -1,7 +1,11 @@
-const fs = require("fs");
-const path = require("path");
-const brotliSize = require("brotli-size");
-const esbuild = require("esbuild");
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import brotliSize from 'brotli-size';
+import * as esbuild from 'esbuild';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Function to ensure a directory exists
 function ensureDirSync(dir) {
@@ -10,18 +14,21 @@ function ensureDirSync(dir) {
   }
 }
 
-function build(options) {
-  options.define || (options.define = {});
+async function build(options) {
+  options.define ||= {};
   options.define["process.env.NODE_ENV"] = process.argv.includes("--watch")
     ? `'production'`
     : `'development'`;
 
-  return esbuild
-    .build({
+  try {
+    return await esbuild.build({
       watch: process.argv.includes("--watch"),
       ...options,
-    })
-    .catch(() => process.exit(1));
+    });
+  } catch (error) {
+    console.error('Build failed:', error);
+    process.exit(1);
+  }
 }
 
 function outputSize(file) {
@@ -37,33 +44,40 @@ function bytesToSize(bytes) {
   return `${(bytes / 1024 ** i).toFixed(1)} ${sizes[i]}`;
 }
 
-// Ensure the dist directory exists
-ensureDirSync(path.join(__dirname, "../dist"));
+async function main() {
+  // Ensure the dist directory exists
+  ensureDirSync(path.join(__dirname, "../dist"));
 
-build({
-  entryPoints: ["builds/cdn.js"],
-  outfile: "dist/asor.js",
-  bundle: true,
-  platform: "browser",
-  define: { CDN: true },
-});
+  await build({
+    entryPoints: ["builds/cdn.js"],
+    outfile: "dist/asor.js",
+    bundle: true,
+    platform: "browser",
+    define: { CDN: true },
+  });
 
-build({
-  format: "esm",
-  entryPoints: ["builds/module.js"],
-  outfile: "dist/asor.module.esm.js",
-  bundle: true,
-  platform: "node",
-  define: { CDN: true },
-});
+  await build({
+    format: "esm",
+    entryPoints: ["builds/module.js"],
+    outfile: "dist/asor.module.esm.js",
+    bundle: true,
+    platform: "node",
+    define: { CDN: true },
+  });
 
-build({
-  entryPoints: ["builds/cdn.js"],
-  outfile: "dist/asor.min.js",
-  bundle: true,
-  minify: true,
-  platform: "browser",
-  define: { CDN: true },
-}).then(() => {
+  await build({
+    entryPoints: ["builds/cdn.js"],
+    outfile: "dist/asor.min.js",
+    bundle: true,
+    minify: true,
+    platform: "browser",
+    define: { CDN: true },
+  });
+
   outputSize("dist/asor.min.js");
+}
+
+main().catch(error => {
+  console.error('An error occurred:', error);
+  process.exit(1);
 });
