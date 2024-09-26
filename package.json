@@ -1,7 +1,7 @@
 {
   "name": "asor",
   "description": "JavaScript framework for dynamic web applications",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "dist/asor.js",
   "module": "dist/asor.module.esm",
