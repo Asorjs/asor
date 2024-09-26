@@ -12,6 +12,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Asegura que tienes todo el historial para los tags
+          persist-credentials: false  # Evita usar las credenciales por defecto
       - uses: actions/setup-node@v3
         with:
           node-version: '20'  # Actualizamos a Node.js 20 para asegurar compatibilidad con ES modules
@@ -36,7 +37,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push --follow-tags
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git push origin HEAD:${{ github.ref }} --follow-tags
       - name: Publish to npm
         run: npm publish
         env:
