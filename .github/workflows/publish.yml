@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Asegura que tienes todo el historial para los tags
       - uses: actions/setup-node@v3
         with:
           node-version: '20'  # Actualizamos a Node.js 20 para asegurar compatibilidad con ES modules
@@ -20,14 +22,22 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Check git status
+        run: git status
+      - name: Commit changes (if any)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Build artifacts" || echo "No changes to commit"
       - name: Increment version
         run: npm version patch
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push --follow-tags
       - name: Publish to npm
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Push changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git push --follow-tags
