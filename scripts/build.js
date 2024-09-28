@@ -14,13 +14,18 @@ function ensureDirSync(dir) {
 
 async function build(options) {
   options.define ||= {};
-  options.define["process.env.NODE_ENV"] = process.argv.includes("--watch") ? `'production'` : `'development'`;
+  options.define["process.env.NODE_ENV"] = process.argv.includes("--watch") ? `'development'` : `'production'`;
+
+  const isWatchMode = process.argv.includes("--watch");
 
   try {
-    return await esbuild.build({
-      watch: process.argv.includes("--watch"),
-      ...options,
-    });
+    if (isWatchMode) {
+      const ctx = await esbuild.context(options);
+      await ctx.watch();
+      console.log("Watching for changes...");
+    } else {
+      return await esbuild.build(options);
+    }
   } catch (error) {
     console.error('Build failed:', error);
     process.exit(1);
@@ -49,7 +54,7 @@ async function main() {
     outfile: "dist/asor.js",
     bundle: true,
     platform: "browser",
-    define: { CDN: true },
+    define: { CDN: '"true"' },
   });
 
   await build({
@@ -58,7 +63,7 @@ async function main() {
     outfile: "dist/asor.module.esm.js",
     bundle: true,
     platform: "node",
-    define: { CDN: true },
+    define: { CDN: '"true"' },
   });
 
   await build({
@@ -67,7 +72,7 @@ async function main() {
     bundle: true,
     minify: true,
     platform: "browser",
-    define: { CDN: true },
+    define: { CDN: '"true"' },
   });
 
   outputSize("dist/asor.min.js");

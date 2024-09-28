@@ -1,11 +1,4 @@
 (() => {
-  var __defProp = Object.defineProperty;
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-  var __publicField = (obj, key, value) => {
-    __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-    return value;
-  };
-
   // utils/types.js
   var isObject = (subject) => subject !== null && typeof subject === "object" && !Array.isArray(subject);
   var isFunction = (subject) => typeof subject === "function";
@@ -32,16 +25,14 @@
       const fullMessage = `${message}
 ${error.message}`;
       handleError(fullMessage, { el, expression });
-      if (onError && isFunction(onError))
-        onError(error, { el, expression, message });
-      if (rethrow)
-        throw error;
+      if (onError && isFunction(onError)) onError(error, { el, expression, message });
+      if (rethrow) throw error;
       return defaultValue;
     }
   }
   function logMessage(type, message, context = {}, ...args) {
     const { el, expression, component } = context;
-    const timestamp = new Date().toISOString();
+    const timestamp = (/* @__PURE__ */ new Date()).toISOString();
     const details = { message, el, expression, component, timestamp, additionalInfo: args };
     const color = type.toLowerCase() === "error" ? "#FF0000" : "#FFA500";
     console.groupCollapsed(`%c[Asor ${type}]: ${message}`, `color: ${color}; font-weight: bold;`);
@@ -65,8 +56,7 @@ ${error.message}`;
     return () => {
       abortController.abort();
       pooledHandlers.delete(handler);
-      if (pooledHandlers.size === 0)
-        events.delete(eventName);
+      if (pooledHandlers.size === 0) events.delete(eventName);
     };
   };
   var dispatch = (target, name, detail, options = {}) => {
@@ -86,8 +76,7 @@ ${error.message}`;
   // utils/dom.js
   var findAncestor = (el, condition) => {
     while (el && el !== document.body) {
-      if (condition(el))
-        return el;
+      if (condition(el)) return el;
       el = el.parentElement;
     }
     return null;
@@ -145,14 +134,12 @@ ${error.message}`;
   var delData = (el) => {
     dataStore.delete(el);
     const dataAttribute = getDataAttribute(el);
-    if (dataAttribute)
-      el.removeAttribute(dataAttribute);
+    if (dataAttribute) el.removeAttribute(dataAttribute);
     delete el.__asor_def;
   };
   function updateData(target) {
     try {
-      if (!dataStore.get(target))
-        return;
+      if (!dataStore.get(target)) return;
       setAttributeState(target);
     } catch (error) {
       handleError("Error updating data for element", target, error);
@@ -162,8 +149,7 @@ ${error.message}`;
     try {
       const storedData = dataStore.get(target);
       const currentData = target.__asor_def;
-      if (ifStatusChanged(storedData, currentData))
-        dataStore.set(target, { ...currentData });
+      if (ifStatusChanged(storedData, currentData)) dataStore.set(target, { ...currentData });
     } catch (error) {
       handleError("Error updating data for element", target, error);
     }
@@ -174,8 +160,7 @@ ${error.message}`;
       const attributeUpdate = () => {
         const newHash = generateStateHash();
         const current = getDataAttribute(target);
-        if (current)
-          target.removeAttribute(current);
+        if (current) target.removeAttribute(current);
         target.setAttribute(`${DATA_ATTRIBUTE_PREFIX}${newHash}`, "");
       };
       attributeUpdate();
@@ -190,29 +175,23 @@ ${error.message}`;
   var cacheRagex = /* @__PURE__ */ new Map();
   function getDirectiveRegex(prefixes) {
     const key = prefixes.join("|");
-    if (!cacheRagex.has(key))
-      cacheRagex.set(key, new RegExp(`^(?:${key})([^\\s.:]+)(?:\\.[^\\s.:]+)*(?::[^\\s]+)?\\s*`));
+    if (!cacheRagex.has(key)) cacheRagex.set(key, new RegExp(`^(?:${key})([^\\s.:]+)(?:\\.[^\\s.:]+)*(?::[^\\s]+)?\\s*`));
     return cacheRagex.get(key);
   }
   var normalizeDirectiveName = (name) => {
-    if (!name)
-      throw new Error("Directive name is required");
-    if (name.startsWith(":"))
-      return `a-bind:${name.slice(1)}`;
-    if (name.startsWith("@"))
-      return `a-on:${name.slice(1)}`;
+    if (!name) throw new Error("Directive name is required");
+    if (name.startsWith(":")) return `a-bind:${name.slice(1)}`;
+    if (name.startsWith("@")) return `a-on:${name.slice(1)}`;
     return name.startsWith("a-") ? name : `a-${name}`;
   };
   var directive = (name, handler) => directiveHandlers.set(name, handler);
   var initializeDirectives = () => findElementsWithAsorDirectives().forEach(initDirectives);
   function initDirectives(el) {
-    if (!el)
-      return handleError(`Undefined element: ${el}`);
+    if (!el) return handleError(`Undefined element: ${el}`);
     const manager = getDirectives(el);
     manager.directives.sort((a, b) => directiveOrderMap.get(a.name) - directiveOrderMap.get(b.name)).forEach((directive2) => {
       const handler = directiveHandlers.get(directive2.name);
-      if (handler)
-        handler({ el, directive: directive2, manager });
+      if (handler) handler({ el, directive: directive2, manager });
     });
   }
   var ifElementHasAnyDirective = (el) => {
@@ -311,16 +290,14 @@ ${error.message}`;
         initDirectives(newEl);
       else {
         const oldData = getData(oldEl);
-        if (oldData)
-          setData(newEl, oldData);
+        if (oldData) setData(newEl, oldData);
       }
     });
   }
   function areDirectivesEqual(el1, el2) {
     const directives1 = getDirectives(el1);
     const directives2 = getDirectives(el2);
-    if (directives1.directives.length !== directives2.directives.length)
-      return false;
+    if (directives1.directives.length !== directives2.directives.length) return false;
     return directives1.directives.every((dir1, index) => {
       const dir2 = directives2.directives[index];
       return dir1.name === dir2.name && dir1.expression === dir2.expression;
@@ -353,8 +330,7 @@ ${error.message}`;
     process(deadline) {
       const processBatch2 = (set, callback) => {
         for (const value of set) {
-          if (deadline.timeRemaining() <= 0 && !deadline.didTimeout)
-            return false;
+          if (deadline.timeRemaining() <= 0 && !deadline.didTimeout) return false;
           callback(value);
           set.delete(value);
         }
@@ -362,8 +338,7 @@ ${error.message}`;
       };
       const processAttributes = () => {
         for (const [node, { attributeName, oldValue, newValue }] of this.changedAttributes) {
-          if (deadline.timeRemaining() <= 0 && !deadline.didTimeout)
-            return false;
+          if (deadline.timeRemaining() <= 0 && !deadline.didTimeout) return false;
           callbacks.attributeChanged.forEach((callback) => safeCallback(callback, node, attributeName, oldValue, newValue));
           safeCallback(() => updateData2(node));
           this.changedAttributes.delete(node);
@@ -378,21 +353,17 @@ ${error.message}`;
   };
   var currentBatch = new MutationBatch();
   var processBatch = () => {
-    if (isBatchProcessing)
-      return;
+    if (isBatchProcessing) return;
     isBatchProcessing = true;
     const processBatchStep = (deadline) => {
-      if (!currentBatch.process(deadline))
-        requestIdleCallback(processBatchStep);
-      else
-        isBatchProcessing = false;
+      if (!currentBatch.process(deadline)) requestIdleCallback(processBatchStep);
+      else isBatchProcessing = false;
     };
     requestIdleCallback(processBatchStep);
   };
   var handleMutations = (mutations) => {
     mutations.forEach((mutation) => currentBatch.add(mutation));
-    if (!currentBatch.isEmpty())
-      processBatch();
+    if (!currentBatch.isEmpty()) processBatch();
   };
   var safeCallback = (callback, ...args) => {
     try {
@@ -402,10 +373,8 @@ ${error.message}`;
     }
   };
   var startObservingMutations = () => {
-    if (isObserving || !document)
-      return;
-    if (!observer)
-      observer = new MutationObserver(handleMutations);
+    if (isObserving || !document) return;
+    if (!observer) observer = new MutationObserver(handleMutations);
     observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
     isObserving = true;
   };
@@ -427,13 +396,11 @@ ${error.message}`;
   var onAttributeChanged = createCallbackHandler("attributeChanged");
   var mutateDom = (callback) => {
     const wasObserving = isObserving;
-    if (wasObserving)
-      stopObserving();
+    if (wasObserving) stopObserving();
     try {
       callback();
     } finally {
-      if (wasObserving)
-        startObservingMutations();
+      if (wasObserving) startObservingMutations();
     }
   };
   var resetInitializationState = () => {
@@ -448,15 +415,13 @@ ${error.message}`;
   var updateQueue = /* @__PURE__ */ new Set();
   var isProcessing = false;
   function onDataChange(el, callback) {
-    if (!subscribers.has(el))
-      subscribers.set(el, /* @__PURE__ */ new Set());
+    if (!subscribers.has(el)) subscribers.set(el, /* @__PURE__ */ new Set());
     subscribers.get(el).add(callback);
     return () => {
       const subs = subscribers.get(el);
       if (subs) {
         subs.delete(callback);
-        if (subs.size === 0)
-          subscribers.delete(el);
+        if (subs.size === 0) subscribers.delete(el);
       }
     };
   }
@@ -475,8 +440,7 @@ ${error.message}`;
     updateQueue.forEach((el) => {
       updateData(el);
       const subs = subscribers.get(el);
-      if (subs)
-        subs.forEach((callback) => callback());
+      if (subs) subs.forEach((callback) => callback());
     });
     updateQueue.clear();
     isProcessing = false;
@@ -487,8 +451,7 @@ ${error.message}`;
   function getPersistentValue(key, defaultValue) {
     const storageKey = key.uniqueId || STORAGE_PREFIX + key;
     const storedValue = localStorage.getItem(storageKey);
-    if (storedValue === null)
-      return defaultValue;
+    if (storedValue === null) return defaultValue;
     try {
       return JSON.parse(storedValue);
     } catch (e) {
@@ -508,10 +471,8 @@ ${error.message}`;
   // features/supportDataProxy.js
   var proxyCache = /* @__PURE__ */ new WeakMap();
   function createDataProxy(data, el) {
-    if (!data || !isObject(data))
-      data = {};
-    if (proxyCache.has(data))
-      return proxyCache.get(data);
+    if (!data || !isObject(data)) data = {};
+    if (proxyCache.has(data)) return proxyCache.get(data);
     const processedData = processData(data, el);
     const proxy = new Proxy(processedData, createProxyHandler(el));
     proxyCache.set(data, proxy);
@@ -521,19 +482,15 @@ ${error.message}`;
     return {
       get(target, key, receiver) {
         const value = Reflect.get(target, key, receiver);
-        if (value && value.__isPersist)
-          return value.value;
-        if (isFunction(value) && !key.startsWith("__"))
-          return handleFunction(value, el, receiver);
+        if (value && value.__isPersist) return value.value;
+        if (isFunction(value) && !key.startsWith("__")) return handleFunction(value, el, receiver);
         return value;
       },
       set(target, key, value, receiver) {
-        if (handlePersistentProperty(target, key, value, el))
-          return true;
+        if (handlePersistentProperty(target, key, value, el)) return true;
         const oldValue = target[key];
         Reflect.set(target, key, value, receiver);
-        if (oldValue !== value)
-          queueUpdate(el);
+        if (oldValue !== value) queueUpdate(el);
         return true;
       }
     };
@@ -550,8 +507,7 @@ ${error.message}`;
       const oldValue = target[key].value;
       target[key].value = value;
       setPersistentValue(key, value);
-      if (oldValue !== value)
-        queueUpdate(el);
+      if (oldValue !== value) queueUpdate(el);
       return true;
     }
     return false;
@@ -597,8 +553,7 @@ ${error.message}`;
   }
   function cleanupDataProxy(el) {
     const data = getData(el);
-    if (data && proxyCache.has(data))
-      proxyCache.delete(data);
+    if (data && proxyCache.has(data)) proxyCache.delete(data);
   }
 
   // root.js
@@ -620,20 +575,15 @@ ${error.message}`;
         dispatch(document, "asor:initialized");
       });
     };
-    if (document.readyState === "loading")
-      document.addEventListener("DOMContentLoaded", initialize);
-    else
-      initialize();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize);
+    else initialize();
   }
   function stop(callback = null) {
-    if (!initialized)
-      return;
+    if (!initialized) return;
     stopObserving();
     cleanupAllElements();
-    if (window.asor)
-      delete window.asor;
-    if (callback && isFunction(callback))
-      callback();
+    if (window.asor) delete window.asor;
+    if (callback && isFunction(callback)) callback();
     dispatch(document, "asor:stopped");
     initialized = false;
   }
@@ -675,14 +625,10 @@ ${error.message}`;
       ...specialContext,
       $data: new Proxy(data, {
         get(target, prop) {
-          if (prop in target)
-            return target[prop];
-          if (prop in specialContext)
-            return specialContext[prop];
-          if (prop in context)
-            return context[prop];
-          if (prop in SAFE_FUNCTIONS)
-            return SAFE_FUNCTIONS[prop];
+          if (prop in target) return target[prop];
+          if (prop in specialContext) return specialContext[prop];
+          if (prop in context) return context[prop];
+          if (prop in SAFE_FUNCTIONS) return SAFE_FUNCTIONS[prop];
           return void 0;
         }
       }),
@@ -734,8 +680,7 @@ ${error.message}`;
   };
   function evaluateExpression(el, expression, context) {
     const errorOptions = createErrorOptions(el, expression);
-    if (isFunction(expression))
-      return safeCall(expression, errorOptions, context);
+    if (isFunction(expression)) return safeCall(expression, errorOptions, context);
     if (!isString(expression)) {
       handleError(`Invalid expression type: ${typeof expression}. Expected string or function.`, el, expression);
       return null;
@@ -754,12 +699,10 @@ ${error.message}`;
   // directives/a-ref.js
   directive("ref", ({ el, directive: directive2 }) => {
     const refName = directive2.expression?.trim();
-    if (!refName)
-      return;
+    if (!refName) return;
     const updateRef = (action) => {
       const root = findRootElement(el);
-      if (!root._asor_refs)
-        root._asor_refs = {};
+      if (!root._asor_refs) root._asor_refs = {};
       action(root._asor_refs);
       if (root !== document.documentElement) {
         const rootData = getData(root) || {};
@@ -771,21 +714,17 @@ ${error.message}`;
     const removeRef = () => updateRef((refs) => delete refs[refName]);
     setRef();
     return onElementRemoved((removedEl) => {
-      if (isElement(removedEl) && removedEl === el)
-        removeRef();
+      if (isElement(removedEl) && removedEl === el) removeRef();
     });
   });
 
   // utils/parse.js
   var parseDataAttribute = (dataAttr, el) => {
-    if (isObject(dataAttr))
-      return dataAttr;
-    if (!isString(dataAttr) || !dataAttr.trim())
-      return {};
+    if (isObject(dataAttr)) return dataAttr;
+    if (!isString(dataAttr) || !dataAttr.trim()) return {};
     try {
       const result = evaluateExpression(el, `(${dataAttr})`, {});
-      if (isObject(result))
-        return result;
+      if (isObject(result)) return result;
       handleError(`Invalid data attribute: ${dataAttr}`, el, dataAttr);
     } catch (error) {
       handleError(`Error parsing data attribute: ${error.message}`, el, dataAttr);
@@ -794,16 +733,12 @@ ${error.message}`;
   };
   function parseForExpression(expression) {
     const match = expression.match(/([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/);
-    if (!match)
-      return null;
+    if (!match) return null;
     const [, itemExp, itemsExp] = match;
     const parts = itemExp.replace(/^\(|\)$/g, "").split(",").map((s) => s.trim());
-    if (parts.length === 1)
-      return { item: parts[0], items: itemsExp.trim() };
-    else if (parts.length === 2)
-      return { item: parts[0], key: parts[1], items: itemsExp.trim() };
-    else if (parts.length === 3)
-      return { item: parts[0], key: parts[1], index: parts[2], items: itemsExp.trim() };
+    if (parts.length === 1) return { item: parts[0], items: itemsExp.trim() };
+    else if (parts.length === 2) return { item: parts[0], key: parts[1], items: itemsExp.trim() };
+    else if (parts.length === 3) return { item: parts[0], key: parts[1], index: parts[2], items: itemsExp.trim() };
     return null;
   }
 
@@ -835,8 +770,7 @@ ${error.message}`;
     ["text", (el, value) => el.textContent = value ?? ""],
     ["html", (el, value) => el.innerHTML = value ?? ""],
     ["value", (el, value) => {
-      if (el.value !== value)
-        el.value = value ?? "";
+      if (el.value !== value) el.value = value ?? "";
     }],
     ["checked", (el, value) => el.checked = !!value],
     ["disabled", (el, value) => el.disabled = !!value],
@@ -851,23 +785,20 @@ ${error.message}`;
     ["selected", updateSelectSelected],
     ["multipleSelect", updateMultipleSelect],
     ["contenteditable", (el, value) => {
-      if (el.innerHTML !== value)
-        el.innerHTML = value;
+      if (el.innerHTML !== value) el.innerHTML = value;
     }],
     ["number", (el, value) => {
       el.value = value === null || value === void 0 ? "" : Number(value);
     }]
   ]);
   function updateElement(el, bindType, value) {
-    if (!el)
-      return;
+    if (!el) return;
     if (el.tagName === "SELECT" && el.multiple && bindType === "value") {
       updateMultipleSelect(el, value);
       return;
     }
     const currentValue = getElementValue(el, bindType);
-    if (Object.is(currentValue, value))
-      return;
+    if (Object.is(currentValue, value)) return;
     setElementValue(el, bindType, value);
   }
   function getElementValue(el, bindType) {
@@ -877,18 +808,15 @@ ${error.message}`;
     (valueSetters.get(bindType) || ((el2, value2) => el2.setAttribute(bindType, value2 ?? "")))(el, value);
   }
   function updateClasses(el, value) {
-    if (isString(value))
-      el.className = value;
-    else if (isArray(value))
-      el.className = value.join(" ");
+    if (isString(value)) el.className = value;
+    else if (isArray(value)) el.className = value.join(" ");
     else if (isObject(value)) {
       for (const [className, condition] of Object.entries(value)) {
         if (className.includes(" ")) {
           className.split(" ").forEach((singleClass) => {
             el.classList.toggle(singleClass.trim(), !!condition);
           });
-        } else
-          el.classList.toggle(className, !!condition);
+        } else el.classList.toggle(className, !!condition);
       }
     }
   }
@@ -901,8 +829,7 @@ ${error.message}`;
   function handleTwoWayBindingInputUpdate(el, bindExpression, event) {
     const newValue = getTargetValue(el, event);
     const defElement = el.closest("[a-def]");
-    if (!defElement)
-      return;
+    if (!defElement) return;
     const data = getData(defElement);
     if (data) {
       const updatedData = { ...data, [bindExpression]: newValue };
@@ -935,8 +862,7 @@ ${error.message}`;
     }
   }
   function updateMultipleSelect(el, value) {
-    if (!isArray(value))
-      value = [value];
+    if (!isArray(value)) value = [value];
     Array.from(el.options).forEach((option) => option.selected = value.includes(option.value));
   }
   function setupInputEvent(el, bindExpression) {
@@ -958,8 +884,7 @@ ${error.message}`;
     const update = async () => {
       const data = getData(el);
       const value = await evaluateInContext(el, bindExpression, { data });
-      if (isUndefined(value))
-        return;
+      if (isUndefined(value)) return;
       mutateDom(async () => {
         updateElement(el, bindType, value);
         setupInputEvent(el, bindExpression);
@@ -967,8 +892,7 @@ ${error.message}`;
     };
     update();
     const cleanup = onAttributeChanged((element, attributeName) => {
-      if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX))
-        update();
+      if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) update();
     });
     return () => cleanup;
   });
@@ -976,8 +900,7 @@ ${error.message}`;
   // directives/a-init.js
   directive("init", ({ el, directive: directive2 }) => {
     const expression = directive2.expression?.trim();
-    if (!expression)
-      return;
+    if (!expression) return;
     const data = el.__asor_def || getData(el);
     if (!data) {
       handleError("No data found for a-init directive:", el);
@@ -992,11 +915,9 @@ ${error.message}`;
     const expression = directive2.expression;
     const runEffect = async () => {
       const data = el.__asor_def || getData(el);
-      if (!data)
-        return;
+      if (!data) return;
       const effectResult = await evaluateInContext(el, expression, { data });
-      if (isFunction(effectResult))
-        return await effectResult();
+      if (isFunction(effectResult)) return await effectResult();
     };
     let cleanup;
     const executeEffect = async () => {
@@ -1005,8 +926,7 @@ ${error.message}`;
         cleanup = null;
       }
       const newCleanup = await runEffect();
-      if (isFunction(newCleanup))
-        cleanup = newCleanup;
+      if (isFunction(newCleanup)) cleanup = newCleanup;
     };
     executeEffect();
     return onDataChange(el, executeEffect);
@@ -1017,23 +937,18 @@ ${error.message}`;
     let message = directive2.expression;
     let shouldPrompt = directive2.hasModifier("prompt");
     message = message.replaceAll("\\n", "\n");
-    if (message === "")
-      message = "Are you sure?";
+    if (message === "") message = "Are you sure?";
     const handle = (isConfirmed, action, instead) => {
-      if (isConfirmed)
-        action();
-      else
-        instead();
+      if (isConfirmed) action();
+      else instead();
     };
     el.__confirm_action = (confirmAction, alternativeAction) => {
       if (shouldPrompt) {
         const [question, expected] = message.split("|");
-        if (!expected)
-          handleError("Directives: You must provide an expectation with @confirm.prompt.");
+        if (!expected) handleError("Directives: You must provide an expectation with @confirm.prompt.");
         const userInput = prompt(question);
         handle(userInput === expected, confirmAction, alternativeAction);
-      } else
-        handle(confirm(message), confirmAction, alternativeAction);
+      } else handle(confirm(message), confirmAction, alternativeAction);
     };
   });
 
@@ -1069,8 +984,7 @@ ${error.message}`;
     iframe.contentWindow.document.write(html);
     iframe.contentWindow.document.close();
     modal.addEventListener("keydown", (e) => {
-      if (e.key === "Escape")
-        hideHtmlModal(modal);
+      if (e.key === "Escape") hideHtmlModal(modal);
     });
     modal.focus();
   }
@@ -1088,16 +1002,13 @@ ${error.message}`;
       this.formData = new FormData();
       this.hasFile = false;
       this.errors = [];
-      if (el.tagName === "FORM")
-        this.serializeForm(el);
-      else
-        this.collectElementData(el);
+      if (el.tagName === "FORM") this.serializeForm(el);
+      else this.collectElementData(el);
       this.addDirectiveData(el);
     }
     collectElementData(el) {
       const handler = this.elementHandlers[el.tagName];
-      if (handler)
-        handler.call(this, el);
+      if (handler) handler.call(this, el);
     }
     elementHandlers = {
       SELECT: this.handleSelect,
@@ -1110,8 +1021,7 @@ ${error.message}`;
         Array.from(select.selectedOptions).forEach((option) => {
           this.formData.append(select.name, option.value);
         });
-      else
-        this.formData.append(select.name, select.value);
+      else this.formData.append(select.name, select.value);
     }
     handleTextArea(textarea) {
       this.formData.append(textarea.name, textarea.value);
@@ -1120,8 +1030,7 @@ ${error.message}`;
       const handlers = {
         checkbox: () => this.formData.append(input.name, input.checked),
         radio: () => {
-          if (input.checked)
-            this.formData.append(input.name, input.value);
+          if (input.checked) this.formData.append(input.name, input.value);
         },
         file: () => {
           if (input.files.length > 0) {
@@ -1133,13 +1042,11 @@ ${error.message}`;
         },
         date: () => {
           const date = new Date(input.value);
-          if (!isNaN(date.getTime()))
-            this.formData.append(input.name, date.toISOString());
+          if (!isNaN(date.getTime())) this.formData.append(input.name, date.toISOString());
         },
         number: () => {
           const num = parseFloat(input.value);
-          if (!isNaN(num))
-            this.formData.append(input.name, num);
+          if (!isNaN(num)) this.formData.append(input.name, num);
         },
         default: () => this.formData.append(input.name, input.value)
       };
@@ -1175,8 +1082,7 @@ ${error.message}`;
           if (!Array.isArray(obj[key]))
             obj[key] = [obj[key]];
           obj[key].push(value);
-        } else
-          obj[key] = value;
+        } else obj[key] = value;
       }
       return obj;
     }
@@ -1246,8 +1152,7 @@ ${error.message}`;
   // features/supportTargets.js
   var targetCache = /* @__PURE__ */ new WeakMap();
   function getTargetDirective(el) {
-    if (targetCache.has(el))
-      return targetCache.get(el);
+    if (targetCache.has(el)) return targetCache.get(el);
     const target = getDirectiveValue(el, "target");
     if (target) {
       const selector = target.expression?.trim();
@@ -1295,22 +1200,19 @@ ${error.message}`;
       const oldEl = oldElements.find((el) => el.isEqualNode(newEl));
       if (oldEl) {
         const oldData = getData(oldEl);
-        if (oldData)
-          setData(newEl, oldData);
+        if (oldData) setData(newEl, oldData);
       }
     });
     reinitializeDirectives(newDOM, oldDOM);
     oldElements.forEach((oldEl) => {
-      if (!newElements.some((newEl) => newEl.isEqualNode(oldEl)))
-        cleanupElement(oldEl);
+      if (!newElements.some((newEl) => newEl.isEqualNode(oldEl))) cleanupElement(oldEl);
     });
   }
   function cleanupElement(el) {
     const data = getData(el);
     if (data && data.$refs) {
       Object.keys(data.$refs).forEach((refName) => {
-        if (data.$refs[refName] === el)
-          delete data.$refs[refName];
+        if (data.$refs[refName] === el) delete data.$refs[refName];
       });
     }
     delData(el);
@@ -1318,8 +1220,7 @@ ${error.message}`;
   }
   function applyTransition(el) {
     const transition = getDirectiveValue(el, "transition");
-    if (!transition)
-      return;
+    if (!transition) return;
     dispatch(el, "asor:transition", { visible: true });
   }
   function queueDomUpdate(el, updateFn) {
@@ -1351,8 +1252,7 @@ ${error.message}`;
       dispatch(document, "asor:before-request", { method, url, options });
       try {
         const response = await this.fetchData(method, url, options, el);
-        if (!response)
-          return;
+        if (!response) return;
         await this.handleResponse(response, el);
       } catch (error) {
         this.handlerError(error, el);
@@ -1391,8 +1291,7 @@ ${error.message}`;
       dispatch(document, "asor:before-send", { method, url, options });
       dispatch(document, "asor:send", { method, url, options });
       const cacheKey = `${method}:${url}`;
-      if (cache.has(cacheKey))
-        return cache.get(cacheKey);
+      if (cache.has(cacheKey)) return cache.get(cacheKey);
       const response = await fetch(url, options);
       if (!response.ok) {
         this.handlerError(`HTTP error! status: ${response.status}`, el);
@@ -1421,8 +1320,7 @@ ${error.message}`;
   // utils/confirm.js
   async function ifConfirm(el) {
     const confirmDirective = getDirectiveValue(el, "confirm");
-    if (!confirmDirective?.expression)
-      return true;
+    if (!confirmDirective?.expression) return true;
     return new Promise((resolve) => {
       if (isFunction(el.__confirm_action))
         el.__confirm_action(() => resolve(true), () => resolve(false));
@@ -1479,8 +1377,7 @@ ${error.message}`;
   function getDefaultEventType(el) {
     const tagName = el.tagName.toLowerCase();
     const type = (el.type || "").toLowerCase();
-    if (tagName === "input")
-      return EVENT_TYPE_MAP.input[type] || "input";
+    if (tagName === "input") return EVENT_TYPE_MAP.input[type] || "input";
     return EVENT_TYPE_MAP[tagName] || (el.isContentEditable ? "input" : el.getAttribute("tabindex") !== null ? "focus" : EVENT_TYPE_MAP.default);
   }
   var createEventHandler = (el, handler, options = {}) => {
@@ -1496,22 +1393,16 @@ ${error.message}`;
       ...options
     };
     const handlerKey = JSON.stringify({ preventDefault, stopPropagation, once, delay, throttleTime, passive, keyModifiers, self });
-    if (!handlerPool.has(el))
-      handlerPool.set(el, /* @__PURE__ */ new Map());
+    if (!handlerPool.has(el)) handlerPool.set(el, /* @__PURE__ */ new Map());
     const elHandlers = handlerPool.get(el);
     if (!elHandlers.has(handlerKey)) {
       const pooledHandler = async (event) => {
-        if (event.type === "intersect")
-          return executeHandler(() => handler(event), delay, throttleTime);
-        if (self && event.target !== el || isKeyEvent(event) && !checkKeyModifiers(event, keyModifiers))
-          return;
-        if (preventDefault && !passive && isFunction(event.preventDefault))
-          event.preventDefault();
-        if (stopPropagation && isFunction(event.stopPropagation))
-          event.stopPropagation();
+        if (event.type === "intersect") return executeHandler(() => handler(event), delay, throttleTime);
+        if (self && event.target !== el || isKeyEvent(event) && !checkKeyModifiers(event, keyModifiers)) return;
+        if (preventDefault && !passive && isFunction(event.preventDefault)) event.preventDefault();
+        if (stopPropagation && isFunction(event.stopPropagation)) event.stopPropagation();
         executeHandler(() => handleEvent(el, event, handler), delay, throttleTime);
-        if (once)
-          cleanupHandler(el, handlerKey);
+        if (once) cleanupHandler(el, handlerKey);
       };
       elHandlers.set(handlerKey, pooledHandler);
     }
@@ -1521,13 +1412,11 @@ ${error.message}`;
   var cleanupHandler = (el, handlerKey) => {
     const elHandlers = handlerPool.get(el);
     elHandlers.delete(handlerKey);
-    if (elHandlers.size === 0)
-      handlerPool.delete(el);
+    if (elHandlers.size === 0) handlerPool.delete(el);
   };
   var handleEvent = async (el, event, handler) => {
     try {
-      if (!await ifConfirm(el))
-        return;
+      if (!await ifConfirm(el)) return;
       const result = isFunction(handler) ? await handler.call(el, event) : true;
       if (result !== false && el.__xhr_handler && !el.__xhr_request_in_progress)
         await el.__xhr_handler.call(el, event);
@@ -1543,10 +1432,8 @@ ${error.message}`;
         if (entry.isIntersecting) {
           try {
             callback(entry, el);
-            if (options.once)
-              observer2.unobserve(el);
-            if (options.disconnect)
-              observer2.disconnect();
+            if (options.once) observer2.unobserve(el);
+            if (options.disconnect) observer2.disconnect();
           } catch (err) {
             handleError("Error in IntersectionObserver callback:", err);
           }
@@ -1557,15 +1444,13 @@ ${error.message}`;
     return () => observer2.disconnect();
   };
   var setupOutsideEvent = (el, eventName, handler, options = {}) => listen(document, eventName, (event) => {
-    if (!el.contains(event.target))
-      handler(event);
+    if (!el.contains(event.target)) handler(event);
   }, options);
   var setupIntersectObserver = (el, handler, options) => {
     const { rootMargin = "0px", threshold = 0.1, once } = options;
     const callback = (entry, element) => {
       const event = { type: "intersect", detail: { entry, element }, target: element };
-      if (dispatch(element, "intersect", event.detail))
-        handler.call(element, event);
+      if (dispatch(element, "intersect", event.detail)) handler.call(element, event);
     };
     return setupIntersectionObserver(el, callback, { rootMargin, threshold, once, disconnect: once });
   };
@@ -1576,8 +1461,7 @@ ${error.message}`;
     const method = getRequestMethodFromDirective(directive2);
     const defaultEvent = getDefaultEventType(el);
     const xhrHandler = async () => {
-      if (el.__xhr_request_in_progress)
-        return;
+      if (el.__xhr_request_in_progress) return;
       el.__xhr_request_in_progress = true;
       try {
         await request().handleRequest(el, method, url);
@@ -1607,14 +1491,12 @@ ${error.message}`;
 
   // utils/duration.js
   function extractDuration(modifiers, defaultDuration) {
-    if (!(modifiers instanceof Map))
-      return defaultDuration;
+    if (!(modifiers instanceof Map)) return defaultDuration;
     for (const [, value] of modifiers) {
       const durationValue = isObject(value) ? value.value : value;
       if (isString(durationValue)) {
         const parsedDuration = parseTime(durationValue);
-        if (parsedDuration !== null)
-          return parsedDuration;
+        if (parsedDuration !== null) return parsedDuration;
       }
     }
     return defaultDuration;
@@ -1667,12 +1549,9 @@ ${error.message}`;
     }
   });
   function applyEventListener(el, event, handler, options) {
-    if (options.window)
-      return listen(window, event, handler, options);
-    if (options.document)
-      return listen(document, event, handler, options);
-    if (options.outside && event === "click")
-      return setupOutsideEvent(el, event, handler, options);
+    if (options.window) return listen(window, event, handler, options);
+    if (options.document) return listen(document, event, handler, options);
+    if (options.outside && event === "click") return setupOutsideEvent(el, event, handler, options);
     return listen(el, event, handler, options);
   }
 
@@ -1696,8 +1575,7 @@ ${error.message}`;
     setData(itemEl, itemData);
     updateData(itemEl);
     const ifDirective = getDirectiveValue(itemEl, "if");
-    if (ifDirective && !await evaluateInContext(itemEl, ifDirective.expression, itemData))
-      return null;
+    if (ifDirective && !await evaluateInContext(itemEl, ifDirective.expression, itemData)) return null;
     const showDirective = getDirectiveValue(itemEl, "show");
     if (showDirective) {
       itemEl.style.display = await evaluateInContext(itemEl, showDirective.expression, itemData) ? "" : "none";
@@ -1718,8 +1596,7 @@ ${error.message}`;
     for (let index = 0; index < entries.length; index++) {
       const [key, value] = isArray2 ? [index, entries[index]] : entries[index];
       const itemEl = await createItemElement(templateContent, value, key, entries.length, parentData, iteratorNames, el);
-      if (itemEl)
-        el.appendChild(itemEl);
+      if (itemEl) el.appendChild(itemEl);
     }
   }
 
@@ -1750,8 +1627,7 @@ ${error.message}`;
     };
     updateList();
     const cleanup = onAttributeChanged((element, attributeName) => {
-      if (element === el.parentElement && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX))
-        updateList();
+      if (element === el.parentElement && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) updateList();
     });
     return () => cleanup();
   });
@@ -1771,14 +1647,11 @@ ${error.message}`;
         isConnected = false;
       }
     });
-    if (el.parentNode)
-      el.parentNode.insertBefore(placeholder, el.nextSibling);
+    if (el.parentNode) el.parentNode.insertBefore(placeholder, el.nextSibling);
     return () => {
       cleanup();
-      if (placeholder.parentNode)
-        placeholder.remove();
-      if (isConnected && el.parentNode)
-        el.remove();
+      if (placeholder.parentNode) placeholder.remove();
+      if (isConnected && el.parentNode) el.remove();
     };
   });
 
@@ -1788,34 +1661,38 @@ ${error.message}`;
     const update = async () => {
       try {
         const visible = await evaluateInContext(el, expression);
-        if (!isUndefined(visible))
-          updateVisibility(el, visible, modifiers.has("important"));
+        if (!isUndefined(visible)) updateVisibility(el, visible, modifiers.has("important"));
       } catch (error) {
         console.error(`Error updating visibility for element:`, el, error);
       }
     };
     update();
     const cleanup = onAttributeChanged((element, attributeName) => {
-      if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX))
-        update();
+      if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) update();
     });
     return cleanup;
   });
   function updateVisibility(el, visible, isImportant) {
     const transitionDirective = getDirectiveValue(el, "transition");
-    if (transitionDirective)
-      dispatch(el, "asor:transition", { visible });
+    if (transitionDirective) dispatch(el, "asor:transition", { visible });
     else {
       mutateDom(() => {
         el.style.display = visible ? "" : "none";
-        if (isImportant)
-          el.style.setProperty("display", el.style.display, "important");
+        if (isImportant) el.style.setProperty("display", el.style.display, "important");
       });
     }
   }
 
   // features/supportProgressBar.js
-  var _PBar = class {
+  var PBar = class _PBar {
+    static DEFAULT_OPTIONS = {
+      color: "#29d",
+      height: "3px",
+      duration: 300,
+      delay: 300,
+      zIndex: 14062024,
+      className: "asor-progress-bar"
+    };
     constructor(options = {}) {
       this.options = { ..._PBar.DEFAULT_OPTIONS, ...options };
       this.bar = null;
@@ -1825,8 +1702,7 @@ ${error.message}`;
       this.trickleInterval = null;
     }
     show() {
-      if (this.visible)
-        return;
+      if (this.visible) return;
       this.visible = true;
       this.value = 0;
       clearTimeout(this.timeout);
@@ -1836,8 +1712,7 @@ ${error.message}`;
       }, this.options.delay);
     }
     hide() {
-      if (!this.visible)
-        return;
+      if (!this.visible) return;
       clearTimeout(this.timeout);
       clearInterval(this.trickleInterval);
       this.visible = false;
@@ -1863,8 +1738,7 @@ ${error.message}`;
       }, 100);
     }
     createBar() {
-      if (this.bar)
-        return;
+      if (this.bar) return;
       this.bar = document.createElement("div");
       this.bar.className = this.options.className;
       this.bar.style.cssText = `
@@ -1889,16 +1763,14 @@ ${error.message}`;
       }
     }
     setAccessibility() {
-      if (!this.bar)
-        return;
+      if (!this.bar) return;
       this.bar.setAttribute("role", "progressbar");
       this.bar.setAttribute("aria-valuemin", "0");
       this.bar.setAttribute("aria-valuemax", "100");
       this.updateARIA();
     }
     updateARIA() {
-      if (!this.bar)
-        return;
+      if (!this.bar) return;
       this.bar.setAttribute("aria-valuenow", Math.round(this.value));
       this.bar.setAttribute("aria-label", `Progress: ${Math.round(this.value)}%`);
     }
@@ -1915,20 +1787,10 @@ ${error.message}`;
             }
         `;
       const cspNonce = getMetaContent("csp-nonce");
-      if (cspNonce)
-        style.nonce = cspNonce;
+      if (cspNonce) style.nonce = cspNonce;
       document.head.appendChild(style);
     }
   };
-  var PBar = _PBar;
-  __publicField(PBar, "DEFAULT_OPTIONS", {
-    color: "#29d",
-    height: "3px",
-    duration: 300,
-    delay: 300,
-    zIndex: 14062024,
-    className: "asor-progress-bar"
-  });
   PBar.injectStyles();
 
   // features/supportNavigate.js
@@ -1943,18 +1805,17 @@ ${error.message}`;
       window.addEventListener("popstate", this.handlePopState.bind(this));
     }
     handleNavigate = async (event) => {
-      if (this.shouldInterceptClick(event))
-        return;
+      if (this.shouldInterceptClick(event)) return;
       event.preventDefault();
       const url = event.currentTarget.href || event.currentTarget.getAttribute("href");
       if (!url) {
-        handleError("No se encontr\xF3 una URL para la navegaci\xF3n.");
+        handleError("No URL found for navigation.");
         return;
       }
       await this.navigate(url);
     };
     shouldInterceptClick = (event) => event.which > 1 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
-    handlePopState = async (event) => {
+    handlePopState = async () => {
       const url = window.location.href;
       const cacheKey = new URL(url, document.baseURI).href;
       if (this.cache.has(cacheKey)) {
@@ -1975,7 +1836,7 @@ ${error.message}`;
               setData(el, data);
               updateData(el);
             } catch (error) {
-              handleError("Error al rehidratar las vinculaciones", error);
+              handleError("Error when rehydrating bindings", error);
             }
           });
         }
@@ -1988,8 +1849,7 @@ ${error.message}`;
         this.saveScrollPosition();
         dispatch(document, "asor:navigating", { url });
         const response = await this.loadView(url);
-        if (!response)
-          return;
+        if (!response) return;
         const urlObject = new URL(url, document.baseURI);
         if (options.pushState) {
           await this.updateState("pushState", urlObject.href);
@@ -2001,7 +1861,7 @@ ${error.message}`;
         this.animateTransition();
         dispatch(document, "asor:navigated", { url: urlObject.href });
       } catch (err) {
-        handleError("Error de navegaci\xF3n:", err);
+        handleError("Navigation error:", err);
       } finally {
         this.progressBar.hide();
       }
@@ -2009,10 +1869,8 @@ ${error.message}`;
     async loadView(url) {
       const fullUrl = new URL(url, document.baseURI).href;
       const cacheKey = fullUrl;
-      if (this.cache.has(cacheKey))
-        return this.cache.get(cacheKey);
-      if (this.currentRequest)
-        this.currentRequest.abort();
+      if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+      if (this.currentRequest) this.currentRequest.abort();
       const controller = new AbortController();
       this.currentRequest = controller;
       try {
@@ -2021,22 +1879,18 @@ ${error.message}`;
           headers: { "X-Requested-With": "XMLHttpRequest" },
           signal: controller.signal
         });
-        if (!response.ok)
-          handleError(`La navegaci\xF3n a ${url} fall\xF3 con el estado ${response.status}`);
+        if (!response.ok) handleError(`Navigation to ${url} failed with state ${response.status}`);
         const html = await response.text();
         const result = { html };
         this.cache.set(cacheKey, result);
         this.trimCache();
         return result;
       } catch (err) {
-        if (err.name === "AbortError")
-          warn(`Solicitud a ${url} abortada`);
-        else
-          handleError(`Error durante la navegaci\xF3n a ${url}:`, err);
+        if (err.name === "AbortError") warn(`Solicitud a ${url} abortada`);
+        else handleError(`Error while navigating to ${url}:`, err);
         throw err;
       } finally {
-        if (this.currentRequest === controller)
-          this.currentRequest = null;
+        if (this.currentRequest === controller) this.currentRequest = null;
       }
     }
     trimCache() {
@@ -2047,7 +1901,6 @@ ${error.message}`;
     }
     saveScrollPosition() {
       const url = new URL(window.location.href);
-      url.hash = "";
       const key = url.href;
       this.scrollPositions.set(key, {
         x: window.scrollX,
@@ -2056,7 +1909,6 @@ ${error.message}`;
     }
     restoreScrollPosition(url) {
       const urlObj = new URL(url);
-      urlObj.hash = "";
       const key = urlObj.href;
       requestAnimationFrame(() => {
         const position = this.scrollPositions.get(key) || { x: 0, y: 0 };
@@ -2078,7 +1930,7 @@ ${error.message}`;
         history[method]({}, document.title, url);
       } catch (err) {
         if (err instanceof DOMException && err.name === "SecurityError") {
-          handleError(`No se puede usar asor:navigate con un enlace a un dominio ra\xEDz diferente: ${url}`);
+          handleError(`You cannot use asor:navigate with a link to a different root domain: ${url}`);
         }
       }
     }
@@ -2090,18 +1942,15 @@ ${error.message}`;
       await this.updateBody(newDocument.body);
       this.executeScripts(document.head);
       this.executeScripts(document.body);
-      if (window.Asor && isFunction(window.Asor.start))
-        window.Asor.start(true);
+      if (window.Asor && isFunction(window.Asor.start)) window.Asor.start(true);
     }
     async updateHead(newHead) {
       const currentHead = document.head;
       Array.from(currentHead.children).forEach((child) => {
-        if (!child.hasAttribute("data-persist"))
-          child.remove();
+        if (!child.hasAttribute("data-persist")) child.remove();
       });
       Array.from(newHead.children).forEach((child) => {
-        if (!child.hasAttribute("data-persist"))
-          currentHead.appendChild(child.cloneNode(true));
+        if (!child.hasAttribute("data-persist")) currentHead.appendChild(child.cloneNode(true));
       });
     }
     async updateBody(newBody) {
@@ -2129,16 +1978,15 @@ ${error.message}`;
     async preloadView(url) {
       const fullUrl = new URL(url, document.baseURI).href;
       const cacheKey = fullUrl;
-      if (this.cache.has(cacheKey))
-        return;
+      if (this.cache.has(cacheKey)) return;
       try {
         const response = await fetch(fullUrl, {
           method: "GET",
           headers: { "X-Requested-With": "XMLHttpRequest" },
           signal: AbortSignal.timeout(1e4)
+          // 10 seconds of waiting time
         });
-        if (!response.ok)
-          handleError(`Precarga de ${url} fall\xF3 con el estado ${response.status}`);
+        if (!response.ok) handleError(`Precarga de ${url} fall\xF3 con el estado ${response.status}`);
         const html = await response.text();
         this.cache.set(cacheKey, { html });
         this.trimCache();
@@ -2151,21 +1999,16 @@ ${error.message}`;
   // directives/a-navigate.js
   var navigationManager;
   directive("navigate", ({ el, directive: directive2 }) => {
-    if (!navigationManager)
-      navigationManager = new NavigationManager();
-    if (el.hasNavigateListener)
-      return;
+    if (!navigationManager) navigationManager = new NavigationManager();
+    if (el.hasNavigateListener) return;
     el.hasNavigateListener = true;
     let isNavigating = false;
     const handleNavigation = async (e) => {
-      if (isNavigating)
-        return;
+      if (isNavigating) return;
       isNavigating = true;
-      if (e.type === "click")
-        e.preventDefault();
+      if (e.type === "click") e.preventDefault();
       try {
-        if (await ifConfirm(el))
-          await navigationManager.handleNavigate(e);
+        if (await ifConfirm(el)) await navigationManager.handleNavigate(e);
       } catch (err) {
         handleError("Navigation error:", err);
       } finally {
@@ -2173,16 +2016,13 @@ ${error.message}`;
       }
     };
     listen(el, "click", handleNavigation);
-    if (directive2.hasModifier("lazy"))
-      setupNavigationObserver(el, directive2);
-    else if (directive2.hasModifier("hover"))
-      setupNavigationLazy(el);
+    if (directive2.hasModifier("lazy")) setupNavigationObserver(el, directive2);
+    else if (directive2.hasModifier("hover")) setupNavigationLazy(el);
   });
   function setupNavigationObserver(el, directive2) {
     const onIntersection = () => {
       const url = el.getAttribute("href");
-      if (url)
-        navigationManager.preloadView(url);
+      if (url) navigationManager.preloadView(url);
     };
     return setupIntersectObserver(el, onIntersection, {
       rootMargin: directive2.getModifierValue("margin") || "90px",
@@ -2192,8 +2032,7 @@ ${error.message}`;
   function setupNavigationLazy(el) {
     const handler = () => {
       const url = el.getAttribute("href");
-      if (url)
-        navigationManager.preloadView(url);
+      if (url) navigationManager.preloadView(url);
     };
     listen(el, "mouseenter", handler);
   }
@@ -2204,29 +2043,24 @@ ${error.message}`;
     let isTransitioning = false;
     let currentVisibility = null;
     const applyTransition2 = (isEnter) => {
-      if (isTransitioning || isEnter === currentVisibility)
-        return;
+      if (isTransitioning || isEnter === currentVisibility) return;
       isTransitioning = true;
       currentVisibility = isEnter;
       const phase = isEnter ? "enter" : "leave";
       const duration = isEnter ? options.enterDuration : options.leaveDuration;
       mutateDom(() => {
-        if (options.useClasses)
-          applyTransitionClasses(el, phase, duration);
-        else
-          applyTransitionStyles(el, isEnter, options);
+        if (options.useClasses) applyTransitionClasses(el, phase, duration);
+        else applyTransitionStyles(el, isEnter, options);
       });
       setTimeout(() => {
         isTransitioning = false;
-        if (!isEnter)
-          el.style.display = "none";
+        if (!isEnter) el.style.display = "none";
       }, duration);
     };
     const handleTransition = (event) => {
       const visible = event.detail.visible;
       if (visible !== currentVisibility) {
-        if (visible)
-          el.style.display = "";
+        if (visible) el.style.display = "";
         applyTransition2(visible);
       }
     };
@@ -2242,23 +2076,19 @@ ${error.message}`;
       const transitionClass = getDirectiveValue(el, `transition:${phase}`)?.expression;
       const startClass = getDirectiveValue(el, `transition:${phase}-start`)?.expression;
       const endClass = getDirectiveValue(el, `transition:${phase}-end`)?.expression;
-      if (transitionClass)
-        el.classList.add(transitionClass);
+      if (transitionClass) el.classList.add(transitionClass);
       if (startClass) {
         el.classList.add(startClass);
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             el.classList.remove(startClass);
-            if (endClass)
-              el.classList.add(endClass);
+            if (endClass) el.classList.add(endClass);
           });
         });
       }
       setTimeout(() => {
-        if (transitionClass)
-          el.classList.remove(transitionClass);
-        if (endClass)
-          el.classList.remove(endClass);
+        if (transitionClass) el.classList.remove(transitionClass);
+        if (endClass) el.classList.remove(endClass);
       }, duration);
     });
   }
@@ -2267,15 +2097,12 @@ ${error.message}`;
       el.style.transition = "none";
       void el.offsetWidth;
       el.style.opacity = isEnter ? options.initialOpacity : "1";
-      if (options.scale)
-        el.style.transform = `scale(${isEnter ? options.initialScale : "1"})`;
+      if (options.scale) el.style.transform = `scale(${isEnter ? options.initialScale : "1"})`;
       void el.offsetWidth;
       el.style.transition = `all ${isEnter ? options.enterDuration : options.leaveDuration}ms ${options.easing}`;
       el.style.opacity = isEnter ? "1" : options.initialOpacity;
-      if (options.scale)
-        el.style.transform = `scale(${isEnter ? "1" : options.initialScale})`;
-      if (options.origin !== "center")
-        el.style.transformOrigin = options.origin;
+      if (options.scale) el.style.transform = `scale(${isEnter ? "1" : options.initialScale})`;
+      if (options.origin !== "center") el.style.transformOrigin = options.origin;
     });
   }
   function parseTransitionOptions(directive2) {
@@ -2295,8 +2122,7 @@ ${error.message}`;
     directive2.modifiers.forEach((value, key) => {
       if (durationKeys.has(key)) {
         options[durationKeys.get(key)] = extractDuration(/* @__PURE__ */ new Map([[key, value]]), options[durationKeys.get(key)]);
-        if (key === "duration")
-          options.leaveDuration = options.enterDuration;
+        if (key === "duration") options.leaveDuration = options.enterDuration;
       } else if (["ease", "ease-in", "ease-out", "ease-in-out", "linear"].includes(key)) {
         options.easing = key;
       } else if (key === "opacity") {
@@ -2305,8 +2131,7 @@ ${error.message}`;
       } else if (key === "scale") {
         options.scale = true;
         options.opacity = value !== "false";
-        if (value && value !== "true")
-          options.initialScale = parseFloat(value) / 100;
+        if (value && value !== "true") options.initialScale = parseFloat(value) / 100;
       } else if (key === "origin") {
         options.origin = value || "center";
       }
@@ -2323,15 +2148,11 @@ ${error.message}`;
       isTruthy = directive2.hasModifier("remove") ? !isTruthy : isTruthy;
       if (directive2.hasModifier("class")) {
         let classes = directive2.expression.split(" ").filter(String);
-        if (isTruthy)
-          el.classList.add(...classes);
-        else
-          el.classList.remove(...classes);
+        if (isTruthy) el.classList.add(...classes);
+        else el.classList.remove(...classes);
       } else if (directive2.hasModifier("attr")) {
-        if (isTruthy)
-          el.setAttribute(directive2.expression, true);
-        else
-          el.removeAttribute(directive2.expression);
+        if (isTruthy) el.setAttribute(directive2.expression, true);
+        else el.removeAttribute(directive2.expression);
       } else {
         let cache2 = cachedDisplay ?? getStyle(el, "display");
         let display = ["inline", "block", "table", "flex", "grid", "inline-flex"].find((i) => directive2.hasModifier(i)) || "inline-block";
@@ -2383,15 +2204,13 @@ ${error.message}`;
   }
   window.addEventListener("online", updateOnlineStatus);
   window.addEventListener("offline", updateOnlineStatus);
-  if (typeof navigator.onLine !== "undefined")
-    updateOnlineStatus();
+  if (typeof navigator.onLine !== "undefined") updateOnlineStatus();
   directive("offline", ({ el, directive: directive2 }) => {
     const setOffline = () => toggleState(el, directive2, true);
     const setOnline = () => toggleState(el, directive2, false);
     offlineHandlers.add(setOffline);
     onlineHandlers.add(setOnline);
-    if (typeof navigator.onLine !== "undefined")
-      toggleState(el, directive2, !navigator.onLine);
+    if (typeof navigator.onLine !== "undefined") toggleState(el, directive2, !navigator.onLine);
     return () => {
       offlineHandlers.delete(setOffline);
       onlineHandlers.delete(setOnline);
