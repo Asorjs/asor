@@ -9,9 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // Function to ensure a directory exists
 function ensureDirSync(dir) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
 async function build(options) {
