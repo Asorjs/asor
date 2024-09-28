@@ -4,88 +4,18 @@ on:
   push:
     branches:
       - main  # o el nombre de tu rama principal
-    tags-ignore:
-      - 'v*'  # Ignora pushes que incluyen etiquetas que empiezan con 'v'
-
-permissions:
-  contents: write  # Otorga permisos de escritura al GITHUB_TOKEN
 
 jobs:
-  publish:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      # Paso 1: Checkout del código con historial completo
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Asegura que tienes todo el historial para los tags
-
-      # Paso 2: Configurar Node.js
       - uses: actions/setup-node@v3
         with:
-          node-version: 20  # Actualizamos a Node.js 20 para asegurar compatibilidad con ES modules
-          registry-url: 'https://registry.npmjs.org/'
-
-      # Paso 3: Instalar dependencias
-      - name: Install dependencies
-        run: npm ci
-
-      # Paso 4: Ejecutar pruebas
-      - name: Run tests
-        run: npm test
-
-      # Paso 5: Construir el proyecto
-      - name: Build
-        run: npm run build
-
-      # Paso 6: Comprobar el estado de Git
-      - name: Check git status
-        run: git status
-
-      # Paso 7: Configurar el usuario de Git
-      - name: Configure Git User
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      # Paso 8: Confirmar cambios (si hay)
-      - name: Commit changes (if any)
-        run: |
-          git add .
-          git commit -m "Build artifacts" || echo "No changes to commit"
-
-      # Paso 9: Incrementar la versión
-      - name: Increment version
-        id: npm_version
-        run: |
-          CURRENT_VERSION=$(npm pkg get version | tr -d \")
-          echo "Current version: $CURRENT_VERSION"
-          NEW_VERSION=$(npm version patch -m "Release version %s [skip ci]")
-          echo "New version: $NEW_VERSION"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Paso 10: Verificar la nueva versión (Depuración)
-      - name: Verify new version
-        run: |
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "New version is $NEW_VERSION"
-
-      # Paso 11: Empujar cambios y etiquetas
-      - name: Push changes
-        run: git push origin main --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Paso 12: Verificar Autenticación en npm
-      - name: Verify npm Authentication
-        run: npm whoami
+          node-version: 20  # o la versión que uses
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build  # asegúrate de tener un script de build en tu package.json
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Paso 13: Publicar en npm
-      - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-          
