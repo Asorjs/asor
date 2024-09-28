@@ -14,9 +14,7 @@ function ensureDirSync(dir) {
 
 async function build(options) {
   options.define ||= {};
-  options.define["process.env.NODE_ENV"] = process.argv.includes("--watch")
-    ? `'production'`
-    : `'development'`;
+  options.define["process.env.NODE_ENV"] = process.argv.includes("--watch") ? `'production'` : `'development'`;
 
   try {
     return await esbuild.build({
