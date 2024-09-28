@@ -324,7 +324,7 @@ export class NavigationManager {
     shouldInterceptClick = (event) => 
         event.which > 1 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 
-    handlePopState = async (event) => {
+    handlePopState = async () => {
         const url = window.location.href;
         const cacheKey = new URL(url, document.baseURI).href;
 
