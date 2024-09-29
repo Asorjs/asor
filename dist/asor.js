@@ -595,6 +595,49 @@ ${error.message}`;
     });
   }
 
+  // features/supportStore.js
+  var store = {};
+  function createStore(initialState = {}) {
+    store = new Proxy(initialState, {
+      get(target, prop) {
+        if (typeof target[prop] === "object" && target[prop] !== null)
+          return new Proxy(target[prop], this);
+        return target[prop];
+      },
+      set(target, prop, value) {
+        target[prop] = value;
+        triggerUpdate();
+        return true;
+      }
+    });
+    return store;
+  }
+  function triggerUpdate() {
+    document.querySelectorAll("[a-def]").forEach((el) => {
+      try {
+        if (el && el.__asor_def) {
+          el.__asor_def.$store = { ...store };
+          updateData(el);
+        }
+      } catch (error) {
+        handleError("Error updating element after store change:", error, el);
+      }
+    });
+  }
+  var getStore = () => store;
+  function updateStore(key, value) {
+    if (typeof value === "object" && value !== null) {
+      store[key] = { ...store[key], ...value };
+    } else {
+      store[key] = value;
+    }
+    triggerUpdate();
+  }
+  var handleStore = (key, value) => {
+    return value === void 0 ? getStore()[key] : updateStore(key, value);
+  };
+  createStore();
+
   // features/supportContext.js
   var SAFE_FUNCTIONS = {
     parseInt,
@@ -619,7 +662,8 @@ ${error.message}`;
         dataset: root ? { ...root.dataset } : {}
       },
       $dispatch: (eventName, detail) => dispatch(el, eventName, detail),
-      $persist: (value) => ({ __isPersist: true, initialValue: value })
+      $persist: (value) => ({ __isPersist: true, initialValue: value }),
+      $store: getStore()
     };
     return {
       ...specialContext,
@@ -749,9 +793,13 @@ ${error.message}`;
       expression = expression === "" ? "{}" : expression;
       const rawData = parseDataAttribute(expression, el);
       const proxyData = createDataProxy(rawData, el);
+      proxyData.$store = getStore();
       setData(el, proxyData);
       updateData(el);
-      return () => delData(el);
+      return () => {
+        delData(el);
+        el.removeAttribute("a-def");
+      };
     } catch (err) {
       handleError("Error in a-def directive:", err, el);
     }
@@ -2253,6 +2301,7 @@ ${error.message}`;
   var Asor = {
     on,
     stop,
+    store: handleStore,
     start,
     evaluate: evaluateInContext,
     directive,

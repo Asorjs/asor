@@ -1,6 +1,7 @@
 import { getData } from "./supportDataStore.js";
 import { findDefElement } from "../utils/dom.js";
 import { dispatch } from "../utils/events.js";
+import { getStore } from "./supportStore.js";
 
 const SAFE_FUNCTIONS = {
     parseInt,
@@ -13,7 +14,7 @@ const SAFE_FUNCTIONS = {
     decodeURI
 };
 
-export const DEFAULT_CONTEXT_KEYS = ['$el', '$event', '$data', '$refs', '$root', '$dispatch', '$persist'];
+export const DEFAULT_CONTEXT_KEYS = ['$el', '$event', '$data', '$refs', '$root', '$dispatch', '$persist', '$store'];
 
 export function prepareContext(el, context = {}) {
     const root = findDefElement(el);
@@ -30,6 +31,7 @@ export function prepareContext(el, context = {}) {
         },
         $dispatch: (eventName, detail) => dispatch(el, eventName, detail),
         $persist: (value) => ({ __isPersist: true, initialValue: value }),
+        $store: getStore()
     };
 
     return {
