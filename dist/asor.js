@@ -740,6 +740,35 @@ ${error.message}`;
   }
   var evaluateInContext = (el, expression, additionalContext = {}) => evaluateExpression(el, expression, additionalContext);
 
+  // features/supportComponents.js
+  var components = /* @__PURE__ */ new Map();
+  function registerComponent(name, componentFunction) {
+    if (typeof componentFunction !== "function") {
+      handleError(`Component "${name}" must be a function.`);
+      return;
+    }
+    components.set(name, componentFunction);
+  }
+  function getComponent(name) {
+    return components.get(name);
+  }
+  function hasComponent(name) {
+    return components.has(name);
+  }
+  var executeComponentFunction = (expression, el) => {
+    const componentFunction = getComponent(expression);
+    try {
+      const context = prepareContext(el, {});
+      return componentFunction(context);
+    } catch (error) {
+      handleError(`Error executing component: ${error.message}`, {
+        el,
+        expression
+      });
+      return null;
+    }
+  };
+
   // directives/a-ref.js
   directive("ref", ({ el, directive: directive2 }) => {
     const refName = directive2.expression?.trim();
@@ -791,12 +820,18 @@ ${error.message}`;
     try {
       let expression = directive2.expression;
       expression = expression === "" ? "{}" : expression;
-      const rawData = parseDataAttribute(expression, el);
+      let rawData = hasComponent(expression) ? executeComponentFunction(expression, el) : parseDataAttribute(expression, el);
+      if (!rawData) {
+        handleError(`Failed to obtain data for a-def directive with expression: ${expression}`, { el });
+        return;
+      }
       const proxyData = createDataProxy(rawData, el);
       proxyData.$store = getStore();
       setData(el, proxyData);
       updateData(el);
+      const cleanup = onDataChange(el, () => updateData(el));
       return () => {
+        cleanup();
         delData(el);
         el.removeAttribute("a-def");
       };
@@ -2305,6 +2340,7 @@ ${error.message}`;
     start,
     evaluate: evaluateInContext,
     directive,
+    component: registerComponent,
     onDataChange,
     dispatchSelf,
     dispatchGlobal

@@ -7,7 +7,6 @@ const proxyCache = new WeakMap();
 
 export function createDataProxy(data, el) {
     if (!data || !isObject(data)) data = {};
-
     if (proxyCache.has(data)) return proxyCache.get(data);
 
     const processedData = processData(data, el);
