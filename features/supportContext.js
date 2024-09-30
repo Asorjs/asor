@@ -32,7 +32,7 @@ export function prepareContext(el, context = {}) {
         $dispatch: (eventName, detail) => dispatch(el, eventName, detail),
         $persist: (value) => ({ __isPersist: true, initialValue: value }),
         $store: getStore(),
-        $id: (key) => `${key}-${generateUniqueId()}`,  
+        $id: (key) => `${key}-${generateUniqueId()}`  
     };
 
     return {
