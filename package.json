@@ -4,7 +4,7 @@
   "author": "Juan Cristobal",
   "license": "MIT",
   "type": "module",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "main": "dist/asor.js",
   "module": "dist/asor.module.esm",
   "unpkg": "dist/asor.min.js",
