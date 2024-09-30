@@ -13,7 +13,6 @@ directive("def",  ({ el, directive }) => {
         expression = expression === "" ? "{}" : expression;
 
         let rawData = hasComponent(expression) ? executeComponentFunction(expression, el) : parseDataAttribute(expression, el);
-
         if (!rawData) {
             handleError(`Failed to obtain data for a-def directive with expression: ${expression}`, { el });
             return;
