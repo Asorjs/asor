@@ -3,7 +3,7 @@ import { generateUniqueId } from "../utils/uniqueId.js";
 import { evaluateInContext } from "../features/supportEvaluateExpression.js";
 
 directive("id", async ({ el, directive }) => {
-    let names = await evaluateInContext(el, directive?.expression);
+    let names = await evaluateInContext(el, directive.expression?.trim());
 
     if (!Array.isArray(names)) {
         console.error('a-id directive requires an array expression.');
