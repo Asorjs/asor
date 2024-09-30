@@ -19,7 +19,7 @@ export const removeElement = el => el?.remove();
 export const removeClass = (el, className) => el.classList.remove(className);
 export const getStyle = (target, prop) => window.getComputedStyle(target).getPropertyValue(prop);
 export const closest = (el, selector) => el.closest?.(selector) || findAncestor(el, e => e.matches(selector));
-export const generateUniqueId = (length = 36, prefix = 'asor-') => `${prefix}${Date.now()}-${Math.random().toString(length).slice(2, 11)}`;
+export const generateUniqueId = (length = 8, prefix = 'asor-') =>`${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 2 + length)}`;
 export const generateStateHash = (length = 36) => Math.random().toString(length).substring(2, 10);
 
 export function findElementsWithAsorDirectives(root = document.body, prefixes = ["a-", "@", ":"]) {
