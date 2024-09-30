@@ -25,14 +25,16 @@ export function prepareContext(el, context = {}) {
         $el: el,
         $event: context.$event || {},
         $refs: refs,
-        $root: {
-            ...root,
-            dataset: root ? { ...root.dataset } : {}
-        },
+        $root: { ...root, dataset: root ? { ...root.dataset } : {} },
         $dispatch: (eventName, detail) => dispatch(el, eventName, detail),
         $persist: (value) => ({ __isPersist: true, initialValue: value }),
         $store: getStore(),
-        $id: (key) => (el._asor_id) ? el._asor_id : `${key}-${generateUniqueId(36, key)}`  
+        $id: (key) => {
+            if (!el._asor_id) {
+                el._asor_id = generateUniqueId(key);
+            }
+            return el._asor_id;
+        }  
     };
 
     return {
