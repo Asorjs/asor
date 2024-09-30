@@ -34,7 +34,7 @@ export function prepareContext(el, context = {}) {
                 el._asor_id = generateUniqueId(key);
             }
             return el._asor_id;
-        }  
+        }
     };
 
     return {
