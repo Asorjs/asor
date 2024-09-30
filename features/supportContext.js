@@ -33,13 +33,13 @@ export function prepareContext(el, context = {}) {
             if (el._asor_ids && el._asor_ids[key]) {
                 return el._asor_ids[key];
             }
-            if (!el._asor_id) {
-                el._asor_id = {};
+            if (!el._asor_ids) {
+                el._asor_ids = {};
             }
-            if (!el._asor_id[key]) {
-                el._asor_id[key] = generateUniqueId(key);
+            if (!el._asor_ids[key]) {
+                el._asor_ids[key] = generateUniqueId(key);
             }
-            return el._asor_id[key];
+            return el._asor_ids[key];
         }
     };
 
