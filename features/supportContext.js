@@ -30,10 +30,16 @@ export function prepareContext(el, context = {}) {
         $persist: (value) => ({ __isPersist: true, initialValue: value }),
         $store: getStore(),
         $id: (key) => {
-            if (!el._asor_id) {
-                el._asor_id = generateUniqueId(key);
+            if (el._asor_ids && el._asor_ids[key]) {
+                return el._asor_ids[key];
             }
-            return el._asor_id;
+            if (!el._asor_id) {
+                el._asor_id = {};
+            }
+            if (!el._asor_id[key]) {
+                el._asor_id[key] = generateUniqueId(key);
+            }
+            return el._asor_id[key];
         }
     };
 

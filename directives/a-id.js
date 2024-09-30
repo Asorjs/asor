@@ -12,5 +12,5 @@ directive("id", async ({ el, directive }) => {
 
     const uniqueIds = {};
     names.forEach((key) => uniqueIds[key] = generateUniqueId(key));
-    el._asor_id = (key) => uniqueIds[key] || null;
+    el._asor_ids = uniqueIds;
 });
