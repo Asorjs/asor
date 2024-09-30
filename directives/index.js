@@ -14,3 +14,4 @@ import "./a-transition.js";
 import "./a-loading.js";
 import "./a-offline.js";
 import "./a-stream.js";
+import "./a-id.js";

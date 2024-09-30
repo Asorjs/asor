@@ -61,7 +61,7 @@ export const getDirectives = (el) => {
 };
 
 const directiveOrder = [
-    "ref", "def", "bind", "init", "confirm", "xhr", "on", 
+    "ref", "def", "id" ,"bind", "init", "confirm", "xhr", "on", 
     "effect", "show", "navigate", "transition", "for", "if", 
     "loading", "offline", "stream"
 ];
