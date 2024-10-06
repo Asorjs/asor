@@ -3,6 +3,7 @@ var isObject = (subject) => subject !== null && typeof subject === "object" && !
 var isFunction = (subject) => typeof subject === "function";
 var isArray = (subject) => Array.isArray(subject);
 var isString = (subject) => typeof subject === "string";
+var isNumber = (subject) => typeof subject === "number";
 var isUndefined = (subject) => subject === void 0;
 
 // utils/logger.js
@@ -1550,7 +1551,10 @@ directive("for", ({ el, directive: directive2 }) => {
   let isInitialized = false;
   const updateList = async () => {
     const parentData = dataOwner.__asor_def;
-    const items = await evaluateInContext(el, iteratorNames.items, parentData);
+    let items = await evaluateInContext(el, iteratorNames.items, parentData);
+    if (isNumber(items)) {
+      items = convertNumberToRange(items);
+    }
     if (isUndefined(items)) {
       warn(`${iteratorNames.items} is not defined`, el);
       return;
@@ -1564,6 +1568,10 @@ directive("for", ({ el, directive: directive2 }) => {
   });
   return () => cleanup2();
 });
+var convertNumberToRange = (items) => {
+  const count = items;
+  return Array.from({ length: count }, (_, i) => i + 1);
+};
 
 // directives/a-if.js
 directive("if", ({ el, directive: directive2 }) => {
