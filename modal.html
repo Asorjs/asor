@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Asor Modal Component</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script>
+</head>
+
+<body class="flex justify-center items-center min-h-screen bg-gray-100">
+    <div a-def="{
+        isOpen: false,
+        title: 'Modal Title',
+        content: 'This is the modal content. You can put any HTML here.',
+        openModal() {
+            this.isOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+        closeModal() {
+            this.isOpen = false;
+            document.body.style.overflow = 'auto';
+        }
+    }" class="text-center">
+        <button @click="openModal()"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+            Open Modal
+        </button>
+
+        <!-- Modal Backdrop -->
+        <div a-show="isOpen" @click="closeModal()"
+            class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-40">
+            <!-- Modal Content -->
+            <div @click.stop a-show="isOpen" class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 z-50"
+                role="dialog" aria-modal="true" :aria-labelledby="'modal-title'">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h2 id="modal-title" class="text-xl font-semibold" :text="title"></h2>
+                    <button @click="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Modal Body -->
+                <div class="p-4">
+                    <p :text="content"></p>
+                </div>
+                <!-- Modal Footer -->
+                <div class="flex justify-end p-4 border-t">
+                    <button @click="closeModal()"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,6 +1,5 @@
 import { directive, getDirectiveValue } from "../directives.js";
 import { listen } from "../utils/events.js";
-import { mutateDom } from "../features/supportMutationObserver.js";
 import { extractDuration } from "../utils/duration.js";
 
 directive("transition", ({ el, directive }) => {
@@ -16,10 +15,8 @@ directive("transition", ({ el, directive }) => {
         const phase = isEnter ? 'enter' : 'leave';
         const duration = isEnter ? options.enterDuration : options.leaveDuration;
         
-        mutateDom(() => {
-            if (options.useClasses) applyTransitionClasses(el, phase, duration);
-            else applyTransitionStyles(el, isEnter, options);
-        });
+        if (options.useClasses) applyTransitionClasses(el, phase, duration);
+        else applyTransitionStyles(el, isEnter, options);
 
         setTimeout(() => {
             isTransitioning = false;
@@ -46,45 +43,41 @@ directive("transition", ({ el, directive }) => {
 });
 
 function applyTransitionClasses(el, phase, duration) {
-    mutateDom(() => {
-        const transitionClass = getDirectiveValue(el, `transition:${phase}`)?.expression;
-        const startClass = getDirectiveValue(el, `transition:${phase}-start`)?.expression;
-        const endClass = getDirectiveValue(el, `transition:${phase}-end`)?.expression;
+    const transitionClass = getDirectiveValue(el, `transition:${phase}`)?.expression;
+    const startClass = getDirectiveValue(el, `transition:${phase}-start`)?.expression;
+    const endClass = getDirectiveValue(el, `transition:${phase}-end`)?.expression;
 
-        if (transitionClass) el.classList.add(transitionClass);
-        if (startClass) {
-            el.classList.add(startClass);
+    if (transitionClass) el.classList.add(transitionClass);
+    if (startClass) {
+        el.classList.add(startClass);
+        requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    el.classList.remove(startClass);
-                    if (endClass) el.classList.add(endClass);
-                });
+                el.classList.remove(startClass);
+                if (endClass) el.classList.add(endClass);
             });
-        }
+        });
+    }
 
-        setTimeout(() => {
-            if (transitionClass) el.classList.remove(transitionClass);
-            if (endClass) el.classList.remove(endClass);
-        }, duration);
-    });
+    setTimeout(() => {
+        if (transitionClass) el.classList.remove(transitionClass);
+        if (endClass) el.classList.remove(endClass);
+    }, duration);
 }
 
 function applyTransitionStyles(el, isEnter, options) {
-    mutateDom(() => {
-        el.style.transition = 'none';
-        void el.offsetWidth;
+    el.style.transition = 'none';
+    void el.offsetWidth;
 
-        el.style.opacity = isEnter ? options.initialOpacity : '1';
-        if (options.scale) el.style.transform = `scale(${isEnter ? options.initialScale : '1'})`;
+    el.style.opacity = isEnter ? options.initialOpacity : '1';
+    if (options.scale) el.style.transform = `scale(${isEnter ? options.initialScale : '1'})`;
 
-        void el.offsetWidth;
+    void el.offsetWidth;
 
-        el.style.transition = `all ${isEnter ? options.enterDuration : options.leaveDuration}ms ${options.easing}`;
-        el.style.opacity = isEnter ? '1' : options.initialOpacity;
-        if (options.scale) el.style.transform = `scale(${isEnter ? '1' : options.initialScale})`;
+    el.style.transition = `all ${isEnter ? options.enterDuration : options.leaveDuration}ms ${options.easing}`;
+    el.style.opacity = isEnter ? '1' : options.initialOpacity;
+    if (options.scale) el.style.transform = `scale(${isEnter ? '1' : options.initialScale})`;
 
-        if (options.origin !== 'center') el.style.transformOrigin = options.origin;
-    });
+    if (options.origin !== 'center') el.style.transformOrigin = options.origin;
 }
 
 function parseTransitionOptions(directive) {

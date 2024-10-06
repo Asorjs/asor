@@ -1,12 +1,11 @@
 import { directive } from "../directives.js";
-import { handleError } from "../utils/logger.js";
-import { warn } from "../utils/logger.js";
+import { handleError, warn } from "../utils/logger.js";
 import { parseForExpression } from "../utils/parse.js";
-import { mutateDom, onAttributeChanged } from "../features/supportMutationObserver.js";
 import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { DATA_ATTRIBUTE_PREFIX, getData } from "../features/supportDataStore.js";
 import { appendItems } from "../features/supportBucleFor.js";
 import { isUndefined } from "../utils/types.js";
+import { findAncestor } from "../utils/dom.js";
+import { onDataChange } from "../features/supportSubscribers.js";
 
 directive("for", ({ el, directive }) => {
     const iteratorNames = parseForExpression(directive.expression);
@@ -15,33 +14,34 @@ directive("for", ({ el, directive }) => {
         return;
     }
 
-    const templateContent = el.innerHTML;
+    const templateContent = el.innerHTML
     el.innerHTML = "";
-    
-    const updateList = () => {
-        mutateDom(async () => {
-            const parentData = getData(el.parentElement);
-            if (!parentData) {
-                warn("No parent data found for a-for directive", el);
-                return;
-            }
 
-            const items = await evaluateInContext(el.parentElement, iteratorNames.items, parentData);
-            if (isUndefined(items)) {
-                warn(`${iteratorNames.items} is not defined`, el);
-                return;
-            }
+    // Encontrar el elemento que posee el estado (a-def)
+    const dataOwner = findAncestor(el, (ele) => ele.__asor_def);    
+    if (!dataOwner) {
+        handleError("No data owner found for a-for directive", el);
+        return;
+    }
 
-            el.innerHTML = "";
-            await appendItems(el, items, parentData, templateContent, iteratorNames);
-        });
+    let isInitialized = false;
+    const updateList = async () => {
+        const parentData = dataOwner.__asor_def;
+        const items = await evaluateInContext(el, iteratorNames.items, parentData );
+
+        if (isUndefined(items)) {
+            warn(`${iteratorNames.items} is not defined`, el);
+            return;
+        }
+
+        await appendItems(el, items, parentData, templateContent, iteratorNames);
+        isInitialized = true;
     };
 
     updateList();
-
-    const cleanup = onAttributeChanged((element, attributeName) => {
-        if (element === el.parentElement && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) updateList();
+    const cleanup = onDataChange(dataOwner, () => {
+        if (isInitialized) updateList();
     });
- 
+    
     return () => cleanup();
 });

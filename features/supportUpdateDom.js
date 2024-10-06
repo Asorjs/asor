@@ -5,7 +5,6 @@ import { reinitializeDirectives } from "../directives.js";
 import { findElementsWithAsorDirectives } from "../utils/dom.js";
 import { dispatch } from "../utils/events.js";
 import { delData, getData, setData } from "../features/supportDataStore.js";
-import { mutateDom } from "./supportMutationObserver.js";
 
 const updateQueue = new Set();
 let isUpdating = false;
@@ -80,11 +79,9 @@ function scheduleUpdate() {
 }
 
 function flushDomUpdates() {
-    mutateDom(() => {
-        for (const { el, updateFn } of updateQueue) {
-            updateFn(el);
-        }
-        updateQueue.clear();
-    });
+    for (const { el, updateFn } of updateQueue) {
+        updateFn(el);
+    }
+    updateQueue.clear();
     isUpdating = false;
 }

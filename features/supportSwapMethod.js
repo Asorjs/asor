@@ -1,6 +1,5 @@
 import { getDirectiveValue } from "../directives.js";
 import { handleError } from "../utils/logger.js";
-import { mutateDom } from "./supportMutationObserver.js";
 
 export function getSwapDirective(el) {
     return getDirectiveValue(el, "swap")?.expression || "innerHTML";
@@ -20,11 +19,8 @@ const swapFunctions = {
 
 export function applySwapMethod(el, content, swapMethod) {
     try {
-        mutateDom(() =>  {
-            const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
-            swapFunction(el, content);
-        })
-    
+        const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
+        swapFunction(el, content);
     } catch (error) {
         handleError(`Error applying swap method "${swapMethod}":`, error);
     }

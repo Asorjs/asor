@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asor Carousel Component</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script>
+</head>
+
+<body class="flex justify-center items-center min-h-screen bg-gray-100">
+
+    <div class="w-full max-w-xs p-4 bg-gray-200 rounded-lg shadow-md">
+        <!-- Radio Group -->
+        <div class="flex flex-col gap-4">
+
+            <!-- Designer Option -->
+            <label class="relative flex items-center gap-3 p-3 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:bg-gray-400">
+                <input type="radio" id="value-1" checked name="value-radio" value="value-1" class="w-4 h-4 appearance-none rounded-full border border-gray-500 checked:bg-blue-600 checked:border-transparent focus:outline-none">
+                <span class="text-gray-800 font-medium">Designer</span>
+                <!-- Animated Background for Selection -->
+                <span class="absolute inset-0 rounded-lg bg-blue-100 opacity-0 transition-all duration-300 ease-in-out" :class="{'opacity-100': $refs.radio1.checked}"></span>
+            </label>
+
+            <!-- Student Option -->
+            <label class="relative flex items-center gap-3 p-3 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:bg-gray-400">
+                <input type="radio" id="value-2" name="value-radio" value="value-2" class="w-4 h-4 appearance-none rounded-full border border-gray-500 checked:bg-blue-600 checked:border-transparent focus:outline-none">
+                <span class="text-gray-800 font-medium">Student</span>
+                <span class="absolute inset-0 rounded-lg bg-blue-100 opacity-0 transition-all duration-300 ease-in-out" :class="{'opacity-100': $refs.radio2.checked}"></span>
+            </label>
+
+            <!-- Teacher Option -->
+            <label class="relative flex items-center gap-3 p-3 bg-gray-300 rounded-lg cursor-pointer transition-all duration-300 hover:bg-gray-400">
+                <input type="radio" id="value-3" name="value-radio" value="value-3" class="w-4 h-4 appearance-none rounded-full border border-gray-500 checked:bg-blue-600 checked:border-transparent focus:outline-none">
+                <span class="text-gray-800 font-medium">Teacher</span>
+                <span class="absolute inset-0 rounded-lg bg-blue-100 opacity-0 transition-all duration-300 ease-in-out" :class="{'opacity-100': $refs.radio3.checked}"></span>
+            </label>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

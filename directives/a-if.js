@@ -1,13 +1,12 @@
 import { directive } from "../directives.js";
 import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { mutateDom } from "../features/supportMutationObserver.js";
 
 directive("if", ({ el, directive }) => {
     const { expression } = directive;
     const placeholder = document.createComment(`if: ${expression}`);
     let isConnected = false;
 
-    const cleanup = mutateDom(() => {
+    const cleanup = () => {
         const shouldShow = evaluateInContext(el, expression);
         
         if (shouldShow && !isConnected && el.parentNode) {
@@ -17,7 +16,7 @@ directive("if", ({ el, directive }) => {
             el.parentNode.replaceChild(placeholder, el);
             isConnected = false;
         }
-    });
+    };
 
     // Initial setup
     if (el.parentNode) el.parentNode.insertBefore(placeholder, el.nextSibling);

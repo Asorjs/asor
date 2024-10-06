@@ -2,7 +2,6 @@ import { PBar } from "./supportProgressBar.js";
 import { handleError } from "../utils/logger.js";
 import { warn } from "../utils/logger.js";
 import { dispatch } from "../utils/events.js";
-import { DATA_ATTRIBUTE_PREFIX, setData, updateData } from "./supportDataStore.js";
 import { isFunction } from "../utils/types.js";
 
 const MAX_CACHE_SIZE = 50;
@@ -41,28 +40,11 @@ export class NavigationManager {
         if (this.cache.has(cacheKey)) {
             const response = this.cache.get(cacheKey);
             await this.renderView(response.html);
-            this.rehydrateBindings();
+            // this.rehydrateBindings();
         } else {
             await this.navigate(url, { pushState: false });
         }
     }
-
-    rehydrateBindings() {
-        document.querySelectorAll("*").forEach(el => {
-            const dataAttrs = Array.from(el.attributes).filter(attr => attr.name.startsWith(DATA_ATTRIBUTE_PREFIX));
-            if (dataAttrs.length > 0) {
-                dataAttrs.forEach(dataAttr => {
-                    try {
-                        const data = JSON.parse(sessionStorage.getItem(dataAttr.name) || '{}');
-                        setData(el, data);
-                        updateData(el);
-                    } catch (error) {
-                        handleError("Error when rehydrating bindings", error);
-                    }
-                });
-            }
-         });
-     }
     
     async navigate(url, options = { pushState: true }) {
         try {

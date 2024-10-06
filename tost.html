@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Notifications Asor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div a-def="{
+            toasts: [],
+            addToast(type, message) {
+                const id = Date.now();  // ID único para cada toast
+                this.toasts.push({ id, type, message });
+
+                setTimeout(() => {
+                    this.removeToast(id);
+                }, 3000); // Eliminar toast después de 3 segundos
+            },
+            removeToast(id) {
+                this.toasts = this.toasts.filter(toast => toast.id !== id);
+            },
+            showSuccess() {
+                this.addToast('success', 'Item moved successfully.');
+            },
+            showError() {
+                this.addToast('danger', 'Item has been deleted.');
+            },
+            showWarning() {
+                this.addToast('warning', 'Improve password difficulty.');
+            }
+        }" class="w-full max-w-xs">
+
+        <!-- Botones para mostrar diferentes toasts -->
+        <button @click="showSuccess()" class="mb-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Show
+            Success Toast</button>
+        <button @click="showError()" class="mb-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Show Error
+            Toast</button>
+        <button @click="showWarning()"
+            class="mb-4 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">Show Warning Toast</button>
+
+        <!-- Toasts -->
+        <div a-for="toast in toasts" class="fixed top-5 right-5 z-50 space-y-4">
+            <!-- span para a-for -->
+            <div :key="toast.id"
+                class="flex items-center w-full max-w-xs p-5 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
+                role="alert">
+                <!-- Icon based on toast type -->
+                <div :class="{
+                        'text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200': toast.type === 'success',
+                        'text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200': toast.type === 'danger',
+                        'text-orange-500 bg-orange-100 dark:bg-orange-700 dark:text-orange-200': toast.type === 'warning'
+                    }" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg">
+                    <!-- Success Icon -->
+                    <svg a-if="toast.type === 'success'" class="w-5 h-5" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+                    </svg>
+                    <!-- Error Icon -->
+                    <svg a-if="toast.type === 'danger'" class="w-5 h-5" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
+                    </svg>
+                    <!-- Warning Icon -->
+                    <svg a-if="toast.type === 'warning'" class="w-5 h-5" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z" />
+                    </svg>
+                </div>
+                <!-- Toast Message -->
+                <div class="ms-3 text-sm font-normal" :text="toast.message"></div>
+                <!-- Close Button -->
+                <button @click="removeToast(toast.id)" type="button"
+                    class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+                    aria-label="Close">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

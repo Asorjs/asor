@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind CSS Toggle Switch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script>
+</head>
+
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <label class="relative inline-block w-[62px] h-[35px]" @click="#">
+        <input type="checkbox" class="sr-only peer">
+        <span class="absolute cursor-pointer inset-0 rounded-full bg-white border border-gray-300 transition-all duration-300 ease-in-out
+                     peer-checked:bg-gray-700 peer-checked:border-transparent
+                     before:content-[''] before:absolute before:h-[1.9em] before:w-[1.9em] before:rounded-full before:bg-white before:border before:border-gray-300 before:left-[1.2px] before:bottom-[1px] before:transition-all before:duration-300 before:ease-in-out before:shadow-md
+                     peer-checked:before:translate-x-[1.5em]">
+        </span>
+    </label>
+</body>
+
+</html>

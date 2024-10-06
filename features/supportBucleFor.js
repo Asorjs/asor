@@ -1,15 +1,15 @@
 import { getDirectiveValue, ifElementHasAnyDirective, initDirectives } from "../directives.js";
 import { findElementsWithAsorDirectives } from '../utils/dom.js';
-import { handleError } from "../utils/logger.js";
+import { handleError, warn } from "../utils/logger.js";
 import { isObject } from "../utils/types.js";
-import { warn } from "../utils/logger.js";
 import { setData, updateData } from "./supportDataStore.js";
 import { evaluateInContext } from "./supportEvaluateExpression.js";
 
 export async function createItemElement(templateContent, item, key, length, parentData, iteratorNames, el) {
     const template = document.createElement("template");
+
     template.innerHTML = templateContent.trim();
-    const itemEl = template.content.firstElementChild || template.content.firstChild;
+    let itemEl = template.content.firstElementChild || template.content.firstChild;
 
     if (!itemEl) {
         handleError("Invalid template in a-for directive", el);
@@ -28,19 +28,19 @@ export async function createItemElement(templateContent, item, key, length, pare
     setData(itemEl, itemData);
     updateData(itemEl);
 
-    // Check if the element should be displayed based on a-if directive
+    // Verificar la directiva a-if
     const ifDirective = getDirectiveValue(itemEl, "if");
     if (ifDirective && !(await evaluateInContext(itemEl, ifDirective.expression, itemData))) return null;
 
-    // Check if the element should be displayed based on a-show directive
+    // Verificar la directiva a-show
     const showDirective = getDirectiveValue(itemEl, "show");
-    if (showDirective) {
+    if (showDirective)
         itemEl.style.display = (await evaluateInContext(itemEl, showDirective.expression, itemData)) ? '' : 'none';
-    }
 
+    // Inicializar las directivas dentro del nuevo elemento
     findElementsWithAsorDirectives(itemEl).forEach((childEl) => {
-        if(ifElementHasAnyDirective(childEl))      
-        initDirectives(childEl);
+        if (ifElementHasAnyDirective(childEl))
+            initDirectives(childEl);
     });
 
     return itemEl;
@@ -48,16 +48,29 @@ export async function createItemElement(templateContent, item, key, length, pare
 
 export async function appendItems(el, items, parentData, templateContent, iteratorNames) {
     if (items == null) {
-        warn('Items is null or undefined in appendItems');
+        warn("Items is null or undefined in appendItems");
         return;
     }
 
     const isArray = Array.isArray(items);
-    const entries = isArray ? items : (isObject(items) ? Object.entries(items) : []);
+    const entries = isArray ? items : Object.entries(items);
+    const fragment = document.createDocumentFragment();
 
-    for (let index = 0; index < entries.length; index++) {
-        const [key, value] = isArray ? [index, entries[index]] : entries[index];
+    // Remove previously generated items
+    const generatedItems = el.parentElement.querySelectorAll('[data-asor-generated="true"]');
+    generatedItems.forEach(itemEl => itemEl.remove());
+
+    // Create and append new items to the fragment
+    for (const [index, entry] of entries.entries()) {
+        const key = isArray ? index : entry[0];
+        const value = isArray ? entry : entry[1];
         const itemEl = await createItemElement(templateContent, value, key, entries.length, parentData, iteratorNames, el);
-        if (itemEl) el.appendChild(itemEl);
+        if (itemEl) {
+            itemEl.setAttribute('data-asor-generated', 'true');
+            fragment.appendChild(itemEl);
+        }
     }
+
+    // Verify if the parent element exists before inserting
+    el.parentElement.insertBefore(fragment, el.nextSibling);
 }

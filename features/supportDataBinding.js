@@ -31,16 +31,24 @@ const valueSetters = new Map([
     [ 'number', (el, value) => { el.value = value === null || value === undefined ? '' : Number(value) } ],
 ]);
 
+// export function updateElement(el, bindType, value) {
+//     if (!el) return;
+
+//     // Manejo especial para selects múltiples
+//     if (el.tagName === 'SELECT' && el.multiple && bindType === 'value') {
+//         updateMultipleSelect(el, value);
+//         return;
+//     }
+
+//     const currentValue = getElementValue(el, bindType);
+//     if (Object.is(currentValue, value)) return;
+//     setElementValue(el, bindType, value);
+// }
+
 export function updateElement(el, bindType, value) {
     if (!el) return;
-
-    // Manejo especial para selects múltiples
-    if (el.tagName === 'SELECT' && el.multiple && bindType === 'value') {
-        updateMultipleSelect(el, value);
-        return;
-    }
-
     const currentValue = getElementValue(el, bindType);
+    // Evitar actualizar el elemento si el valor no ha cambiado
     if (Object.is(currentValue, value)) return;
     setElementValue(el, bindType, value);
 }
@@ -74,18 +82,30 @@ function updateStyles(el, value) {
         Object.assign(el.style, value);
 }
 
+// function handleTwoWayBindingInputUpdate(el, bindExpression, event) {
+//     const newValue = getTargetValue(el, event);
+//     const defElement = el.closest('[a-def]');
+//     if (!defElement) return;
+
+//     const data = getData(defElement);
+//     if (data) {
+//         const updatedData = { ...data, [bindExpression]: newValue };
+//         setData(defElement, updatedData);
+//         updateData(defElement);
+//     }
+// }
+
 function handleTwoWayBindingInputUpdate(el, bindExpression, event) {
     const newValue = getTargetValue(el, event);
-    const defElement = el.closest('[a-def]');
+    const defElement = el.closest("[a-def]");
     if (!defElement) return;
-
     const data = getData(defElement);
     if (data) {
-        const updatedData = { ...data, [bindExpression]: newValue };
-        setData(defElement, updatedData);
-        updateData(defElement);
+        // setData(defElement, updatedData);
+        updateData(defElement, { [bindExpression]: newValue });
     }
 }
+
 
 function getTargetValue(el, event) {
     if (el.tagName === 'SELECT' && el.multiple)

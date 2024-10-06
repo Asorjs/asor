@@ -4,8 +4,6 @@ var isFunction = (subject) => typeof subject === "function";
 var isArray = (subject) => Array.isArray(subject);
 var isString = (subject) => typeof subject === "string";
 var isUndefined = (subject) => subject === void 0;
-var isElement = (subject) => subject instanceof Element;
-var isEqual = (obj1, obj2) => JSON.stringify(obj1) === JSON.stringify(obj2);
 
 // utils/logger.js
 function warn(message, context = {}, ...args) {
@@ -72,6 +70,68 @@ var on = (eventName, callback) => listen(window, eventName, (e) => e.__asor && c
 var dispatchGlobal = (name, detail) => dispatch(window, name, detail);
 var dispatchSelf = (target, name, detail) => dispatch(target, name, detail, { bubbles: false });
 
+// features/supportSubscribers.js
+var subscribers = /* @__PURE__ */ new WeakMap();
+var updateQueue = /* @__PURE__ */ new Set();
+var isProcessing = false;
+function onDataChange(el, callback) {
+  if (!subscribers.has(el)) subscribers.set(el, []);
+  subscribers.get(el).push(callback);
+  return () => {
+    const callbacks = subscribers.get(el);
+    if (callbacks) {
+      const index = callbacks.indexOf(callback);
+      if (index > -1) callbacks.splice(index, 1);
+      if (callbacks.length === 0) subscribers.delete(el);
+    }
+  };
+}
+function queueUpdate(el) {
+  updateQueue.add(el);
+  scheduleUpdate();
+}
+function scheduleUpdate() {
+  if (!isProcessing) {
+    isProcessing = true;
+    queueMicrotask(() => flushUpdates());
+    isProcessing = false;
+  }
+}
+function flushUpdates() {
+  updateQueue.forEach((el) => {
+    updateData(el);
+    const subs = subscribers.get(el);
+    if (subs) subs.forEach((callback) => callback());
+  });
+  updateQueue.clear();
+  isProcessing = false;
+}
+
+// features/supportDataStore.js
+var dataStore = /* @__PURE__ */ new WeakMap();
+function setData(el, data) {
+  dataStore.set(el, data);
+  el.__asor_def = data;
+}
+function getData(el) {
+  while (el) {
+    if (el.__asor_def) return el.__asor_def;
+    el = el.parentElement;
+  }
+  return {};
+}
+var delData = (el) => {
+  dataStore.delete(el);
+  delete el.__asor_def;
+};
+function updateData(el, newData) {
+  const data = getData(el);
+  if (data) {
+    Object.assign(data, newData);
+    queueUpdate(el);
+  }
+}
+
 // utils/dom.js
 var findAncestor = (el, condition) => {
   while (el && el !== document.body) {
@@ -85,7 +145,7 @@ var findDefElement = (el) => findAncestor(el, (ele) => ele.hasAttribute("a-def")
 var findRootElement = (el) => findAncestor(el, (ele) => ele.dataset && Object.keys(ele.dataset).length > 0 || ele.hasAttribute("a-def")) || document.body;
 var isForm = (el) => el.tagName === "FORM";
 var getStyle = (target, prop) => window.getComputedStyle(target).getPropertyValue(prop);
-var generateStateHash = (length = 36) => Math.random().toString(length).substring(2, 10);
+var generateUniqueId = (prefix = "asor-", length = 8) => `${prefix}${Date.now()}-${Math.random().toString(36).slice(2, 2 + length)}`;
 function findElementsWithAsorDirectives(root = document.body, prefixes = ["a-", "@", ":"]) {
   const elements = [];
   const iterator = document.createNodeIterator(
@@ -99,73 +159,6 @@ function findElementsWithAsorDirectives(root = document.body, prefixes = ["a-", 
   while (currentNode = iterator.nextNode())
     elements.push(currentNode);
   return elements;
-}
-
-// features/supportDataStore.js
-var dataStore = /* @__PURE__ */ new WeakMap();
-var DATA_ATTRIBUTE_PREFIX = "data-a-";
-var getDataAttribute = (el) => Array.from(el.attributes).find((attr) => attr.name.startsWith(DATA_ATTRIBUTE_PREFIX))?.name || null;
-var setData = (el, data) => {
-  if (!isElement(el)) {
-    handleError("The element is not a valid HTML element", el);
-    return null;
-  }
-  if (!isObject(data)) {
-    handleError(`${data} must be a valid object`, el);
-    return null;
-  }
-  if (!isEqual(dataStore.get(el), data)) {
-    dataStore.set(el, data);
-    el.__asor_def = data;
-    setAttributeState(el);
-  }
-  return data;
-};
-function getData(el) {
-  while (el) {
-    if (el.__asor_def) {
-      return el.__asor_def;
-    }
-    el = el.parentElement;
-  }
-  return {};
-}
-var delData = (el) => {
-  dataStore.delete(el);
-  const dataAttribute = getDataAttribute(el);
-  if (dataAttribute) el.removeAttribute(dataAttribute);
-  delete el.__asor_def;
-};
-function updateData(target) {
-  try {
-    if (!dataStore.get(target)) return;
-    setAttributeState(target);
-  } catch (error) {
-    handleError("Error updating data for element", target, error);
-  }
-}
-function updateData2(target) {
-  try {
-    const storedData = dataStore.get(target);
-    const currentData = target.__asor_def;
-    if (ifStatusChanged(storedData, currentData)) dataStore.set(target, { ...currentData });
-  } catch (error) {
-    handleError("Error updating data for element", target, error);
-  }
-}
-var ifStatusChanged = (oldState, currentState) => !isEqual(oldState, currentState);
-function setAttributeState(target) {
-  try {
-    const attributeUpdate = () => {
-      const newHash = generateStateHash();
-      const current = getDataAttribute(target);
-      if (current) target.removeAttribute(current);
-      target.setAttribute(`${DATA_ATTRIBUTE_PREFIX}${newHash}`, "");
-    };
-    attributeUpdate();
-  } catch (error) {
-    handleError("Error serializing data for element", target, error);
-  }
 }
 
 // directives.js
@@ -216,6 +209,7 @@ var getDirectives = (el) => {
 var directiveOrder = [
   "ref",
   "def",
+  "id",
   "bind",
   "init",
   "confirm",
@@ -232,7 +226,7 @@ var directiveOrder = [
   "stream"
 ];
 var directiveOrderMap = new Map(directiveOrder.map((d, i) => [d, i]));
-var getDirectiveValue = (el, directiveName) => {
+var getDirectiveValue2 = (el, directiveName) => {
   const directive2 = getDirectives(el).getDirective(directiveName);
   return directive2 ? { ...directive2, name: directiveName } : null;
 };
@@ -303,258 +297,6 @@ function areDirectivesEqual(el1, el2) {
   });
 }
 
-// features/supportMutationObserver.js
-var MUTATION_TYPES = { CHILD_LIST: "childList", ATTRIBUTES: "attributes" };
-var callbacks = { elementAdded: /* @__PURE__ */ new Set(), elementRemoved: /* @__PURE__ */ new Set(), attributeChanged: /* @__PURE__ */ new Set() };
-var observer = null;
-var isObserving = false;
-var isBatchProcessing = false;
-var MutationBatch = class {
-  constructor() {
-    this.addedNodes = /* @__PURE__ */ new Set();
-    this.removedNodes = /* @__PURE__ */ new Set();
-    this.changedAttributes = /* @__PURE__ */ new Map();
-  }
-  add(mutation) {
-    if (mutation.type === MUTATION_TYPES.CHILD_LIST) {
-      mutation.addedNodes.forEach((node) => node.nodeType === Node.ELEMENT_NODE && this.addedNodes.add(node));
-      mutation.removedNodes.forEach((node) => node.nodeType === Node.ELEMENT_NODE && this.removedNodes.add(node));
-    } else if (mutation.type === MUTATION_TYPES.ATTRIBUTES && mutation.attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) {
-      const newValue = mutation.target.getAttribute(mutation.attributeName);
-      if (mutation.oldValue !== newValue) {
-        this.changedAttributes.set(mutation.target, { attributeName: mutation.attributeName, oldValue: mutation.oldValue, newValue });
-      }
-    }
-  }
-  process(deadline) {
-    const processBatch2 = (set, callback) => {
-      for (const value of set) {
-        if (deadline.timeRemaining() <= 0 && !deadline.didTimeout) return false;
-        callback(value);
-        set.delete(value);
-      }
-      return true;
-    };
-    const processAttributes = () => {
-      for (const [node, { attributeName, oldValue, newValue }] of this.changedAttributes) {
-        if (deadline.timeRemaining() <= 0 && !deadline.didTimeout) return false;
-        callbacks.attributeChanged.forEach((callback) => safeCallback(callback, node, attributeName, oldValue, newValue));
-        safeCallback(() => updateData2(node));
-        this.changedAttributes.delete(node);
-      }
-      return true;
-    };
-    return processBatch2(this.addedNodes, (node) => callbacks.elementAdded.forEach((callback) => safeCallback(callback, node))) && processBatch2(this.removedNodes, (node) => callbacks.elementRemoved.forEach((callback) => safeCallback(callback, node))) && processAttributes();
-  }
-  isEmpty() {
-    return this.addedNodes.size === 0 && this.removedNodes.size === 0 && this.changedAttributes.size === 0;
-  }
-};
-var currentBatch = new MutationBatch();
-var processBatch = () => {
-  if (isBatchProcessing) return;
-  isBatchProcessing = true;
-  const processBatchStep = (deadline) => {
-    if (!currentBatch.process(deadline)) requestIdleCallback(processBatchStep);
-    else isBatchProcessing = false;
-  };
-  requestIdleCallback(processBatchStep);
-};
-var handleMutations = (mutations) => {
-  mutations.forEach((mutation) => currentBatch.add(mutation));
-  if (!currentBatch.isEmpty()) processBatch();
-};
-var safeCallback = (callback, ...args) => {
-  try {
-    callback(...args);
-  } catch (error) {
-    handleError(`Error in mutation observer callback:`, callback.toString(), error);
-  }
-};
-var startObservingMutations = () => {
-  if (isObserving || !document) return;
-  if (!observer) observer = new MutationObserver(handleMutations);
-  observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
-  isObserving = true;
-};
-var stopObserving = () => {
-  if (isObserving) {
-    observer.disconnect();
-    isObserving = false;
-  }
-};
-var createCallbackHandler = (type) => (callback) => {
-  if (isFunction(callback)) {
-    callbacks[type].add(callback);
-    return () => callbacks[type].delete(callback);
-  }
-  handleError(`Invalid callback provided to on${type.charAt(0).toUpperCase() + type.slice(1)}`);
-};
-var onElementAdded = createCallbackHandler("elementAdded");
-var onElementRemoved = createCallbackHandler("elementRemoved");
-var onAttributeChanged = createCallbackHandler("attributeChanged");
-var mutateDom = (callback) => {
-  const wasObserving = isObserving;
-  if (wasObserving) stopObserving();
-  try {
-    callback();
-  } finally {
-    if (wasObserving) startObservingMutations();
-  }
-};
-var resetInitializationState = () => {
-  currentBatch.addedNodes.clear();
-  currentBatch.removedNodes.clear();
-  currentBatch.changedAttributes.clear();
-  isBatchProcessing = false;
-};
-
-// features/supportSubscribers.js
-var subscribers = /* @__PURE__ */ new WeakMap();
-var updateQueue = /* @__PURE__ */ new Set();
-var isProcessing = false;
-function onDataChange(el, callback) {
-  if (!subscribers.has(el)) subscribers.set(el, /* @__PURE__ */ new Set());
-  subscribers.get(el).add(callback);
-  return () => {
-    const subs = subscribers.get(el);
-    if (subs) {
-      subs.delete(callback);
-      if (subs.size === 0) subscribers.delete(el);
-    }
-  };
-}
-function queueUpdate(el) {
-  updateQueue.add(el);
-  scheduleUpdate();
-}
-function scheduleUpdate() {
-  if (!isProcessing) {
-    isProcessing = true;
-    queueMicrotask(() => flushUpdates());
-    isProcessing = false;
-  }
-}
-function flushUpdates() {
-  updateQueue.forEach((el) => {
-    updateData(el);
-    const subs = subscribers.get(el);
-    if (subs) subs.forEach((callback) => callback());
-  });
-  updateQueue.clear();
-  isProcessing = false;
-}
-
-// features/supportDataPersist.js
-var STORAGE_PREFIX = "asor_persist_";
-function getPersistentValue(key, defaultValue) {
-  const storageKey = key.uniqueId || STORAGE_PREFIX + key;
-  const storedValue = localStorage.getItem(storageKey);
-  if (storedValue === null) return defaultValue;
-  try {
-    return JSON.parse(storedValue);
-  } catch (e) {
-    warn(`Error parsing stored value for key ${key}:`, e);
-    return defaultValue;
-  }
-}
-function setPersistentValue(key, value) {
-  const storageKey = key.uniqueId || STORAGE_PREFIX + key;
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(value));
-  } catch (e) {
-    handleError(`Error storing value for key ${key}:`, e);
-  }
-}
-
-// features/supportDataProxy.js
-var proxyCache = /* @__PURE__ */ new WeakMap();
-function createDataProxy(data, el) {
-  if (!data || !isObject(data)) data = {};
-  if (proxyCache.has(data)) return proxyCache.get(data);
-  const processedData = processData(data, el);
-  const proxy = new Proxy(processedData, createProxyHandler(el));
-  proxyCache.set(data, proxy);
-  return proxy;
-}
-function createProxyHandler(el) {
-  return {
-    get(target, key, receiver) {
-      const value = Reflect.get(target, key, receiver);
-      if (value && value.__isPersist) return value.value;
-      if (isFunction(value) && !key.startsWith("__")) return handleFunction(value, el, receiver);
-      return value;
-    },
-    set(target, key, value, receiver) {
-      if (handlePersistentProperty(target, key, value, el)) return true;
-      const oldValue = target[key];
-      Reflect.set(target, key, value, receiver);
-      if (oldValue !== value) queueUpdate(el);
-      return true;
-    }
-  };
-}
-function handleFunction(func, el, proxy) {
-  return function(...args) {
-    const result = func.apply(proxy, args);
-    queueUpdate(el);
-    return result;
-  };
-}
-function handlePersistentProperty(target, key, value, el) {
-  if (target[key] && target[key].__isPersist) {
-    const oldValue = target[key].value;
-    target[key].value = value;
-    setPersistentValue(key, value);
-    if (oldValue !== value) queueUpdate(el);
-    return true;
-  }
-  return false;
-}
-function processData(data, el) {
-  const processedData = {};
-  handleComputedProperties(data, processedData);
-  handleEntries(data, processedData, el);
-  return processedData;
-}
-function handleComputedProperties(data, processedData) {
-  Object.keys(data).forEach((key) => {
-    const descriptor = Object.getOwnPropertyDescriptor(data, key);
-    if (descriptor && typeof descriptor.get === "function") {
-      Object.defineProperty(processedData, key, {
-        get: descriptor.get.bind(processedData),
-        enumerable: true,
-        configurable: true
-      });
-    }
-  });
-}
-function handleEntries(data, processedData, el) {
-  Object.entries(data).forEach(([key, value]) => {
-    if (value && value.__isPersist) {
-      processedData[key] = initializePersistentProperty(key, value);
-    } else if (isObject(value)) {
-      processedData[key] = createDataProxy(value, el);
-    } else if (isFunction(value)) {
-      processedData[key] = value;
-    } else if (!processedData[key]) {
-      processedData[key] = value;
-    }
-  });
-}
-function initializePersistentProperty(key, value) {
-  let persistentValue = getPersistentValue(key, value.initialValue);
-  if (persistentValue === null || persistentValue === void 0) {
-    persistentValue = value.initialValue;
-  }
-  setPersistentValue(key, persistentValue);
-  return { __isPersist: true, value: persistentValue };
-}
-function cleanupDataProxy(el) {
-  const data = getData(el);
-  if (data && proxyCache.has(data)) proxyCache.delete(data);
-}
-
 // root.js
 var initialized = false;
 function start(forceInit = false) {
@@ -564,11 +306,9 @@ function start(forceInit = false) {
   }
   stop();
   const initialize = () => {
-    resetInitializationState();
     dispatch(document, "asor:init");
     dispatch(document, "asor:initializing");
     requestAnimationFrame(() => {
-      startObservingMutations();
       initializeDirectives();
       initialized = true;
       dispatch(document, "asor:initialized");
@@ -579,19 +319,10 @@ function start(forceInit = false) {
 }
 function stop(callback = null) {
   if (!initialized) return;
-  stopObserving();
-  cleanupAllElements();
   if (window.asor) delete window.asor;
   if (callback && isFunction(callback)) callback();
   dispatch(document, "asor:stopped");
   initialized = false;
-}
-function cleanupAllElements() {
-  document.querySelectorAll("*").forEach((el) => {
-    const dataAttributes = Array.from(el.attributes).filter((attr) => attr.name.startsWith(DATA_ATTRIBUTE_PREFIX));
-    dataAttributes.forEach((attr) => el.removeAttribute(attr.name));
-    cleanupDataProxy(el);
-  });
 }
 
 // features/supportStore.js
@@ -656,13 +387,14 @@ function prepareContext(el, context = {}) {
     $el: el,
     $event: context.$event || {},
     $refs: refs,
-    $root: {
-      ...root,
-      dataset: root ? { ...root.dataset } : {}
-    },
+    $root: { ...root, dataset: root ? { ...root.dataset } : {} },
     $dispatch: (eventName, detail) => dispatch(el, eventName, detail),
     $persist: (value) => ({ __isPersist: true, initialValue: value }),
-    $store: getStore()
+    $store: getStore(),
+    $id: (key) => {
+      const ids = el._asor_ids || (el._asor_ids = {});
+      return ids[key] || (ids[key] = generateUniqueId(key));
+    }
   };
   return {
     ...specialContext,
@@ -770,25 +502,137 @@ var executeComponentFunction = (expression, el) => {
 
 // directives/a-ref.js
 directive("ref", ({ el, directive: directive2 }) => {
-  const refName = directive2.expression?.trim();
+  const refName = directive2.expression;
   if (!refName) return;
-  const updateRef = (action) => {
-    const root = findRootElement(el);
-    if (!root._asor_refs) root._asor_refs = {};
-    action(root._asor_refs);
+  const root = findRootElement(el);
+  if (!root._asor_refs) root._asor_refs = {};
+  root._asor_refs[refName] = el;
+  if (root !== document.documentElement) {
+    const rootData2 = getData(root) || {};
+    rootData2.$refs = root._asor_refs;
+    setData(root, rootData2);
+  }
+  return () => cleanup(rootData);
+});
+function cleanup(root) {
+  const refName = getDirectiveValue(root, "ref")?.expression;
+  if (refName) {
+    delete root._asor_refs[refName];
     if (root !== document.documentElement) {
-      const rootData = getData(root) || {};
-      rootData.$refs = root._asor_refs;
-      setData(root, rootData);
+      const rootData2 = getData(root) || {};
+      if (rootData2.$refs) {
+        delete rootData2.$refs[refName];
+        setData(root, rootData2);
+      }
+    }
+  }
+}
+
+// features/supportDataPersist.js
+var STORAGE_PREFIX = "asor_persist_";
+function getPersistentValue(key, defaultValue) {
+  const storageKey = key.uniqueId || STORAGE_PREFIX + key;
+  const storedValue = localStorage.getItem(storageKey);
+  if (storedValue === null) return defaultValue;
+  try {
+    return JSON.parse(storedValue);
+  } catch (e) {
+    warn(`Error parsing stored value for key ${key}:`, e);
+    return defaultValue;
+  }
+}
+function setPersistentValue(key, value) {
+  const storageKey = key.uniqueId || STORAGE_PREFIX + key;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(value));
+  } catch (e) {
+    handleError(`Error storing value for key ${key}:`, e);
+  }
+}
+
+// features/supportDataProxy.js
+var proxyCache = /* @__PURE__ */ new WeakMap();
+function createDataProxy(data, el) {
+  if (!data || !isObject(data)) data = {};
+  if (proxyCache.has(data)) return proxyCache.get(data);
+  const processedData = processData(data, el);
+  const proxy = new Proxy(processedData, createProxyHandler(el));
+  proxyCache.set(data, proxy);
+  return proxy;
+}
+function createProxyHandler(el) {
+  return {
+    get(target, key, receiver) {
+      const value = Reflect.get(target, key, receiver);
+      if (value && value.__isPersist) return value.value;
+      if (isFunction(value) && !key.startsWith("__")) return handleFunction(value, el, receiver);
+      return value;
+    },
+    set(target, key, value, receiver) {
+      if (handlePersistentProperty(target, key, value, el)) return true;
+      const oldValue = target[key];
+      Reflect.set(target, key, value, receiver);
+      if (oldValue !== value) queueUpdate(el);
+      return true;
     }
   };
-  const setRef = () => updateRef((refs) => refs[refName] = el);
-  const removeRef = () => updateRef((refs) => delete refs[refName]);
-  setRef();
-  return onElementRemoved((removedEl) => {
-    if (isElement(removedEl) && removedEl === el) removeRef();
+}
+function handleFunction(func, el, proxy) {
+  return function(...args) {
+    const result = func.apply(proxy, args);
+    queueUpdate(el);
+    return result;
+  };
+}
+function handlePersistentProperty(target, key, value, el) {
+  if (target[key] && target[key].__isPersist) {
+    const oldValue = target[key].value;
+    target[key].value = value;
+    setPersistentValue(key, value);
+    if (oldValue !== value) queueUpdate(el);
+    return true;
+  }
+  return false;
+}
+function processData(data, el) {
+  const processedData = {};
+  handleComputedProperties(data, processedData);
+  handleEntries(data, processedData, el);
+  return processedData;
+}
+function handleComputedProperties(data, processedData) {
+  Object.keys(data).forEach((key) => {
+    const descriptor = Object.getOwnPropertyDescriptor(data, key);
+    if (descriptor && typeof descriptor.get === "function") {
+      Object.defineProperty(processedData, key, {
+        get: descriptor.get.bind(processedData),
+        enumerable: true,
+        configurable: true
+      });
+    }
   });
-});
+}
+function handleEntries(data, processedData, el) {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value && value.__isPersist) {
+      processedData[key] = initializePersistentProperty(key, value);
+    } else if (isObject(value)) {
+      processedData[key] = createDataProxy(value, el);
+    } else if (isFunction(value)) {
+      processedData[key] = value;
+    } else if (!processedData[key]) {
+      processedData[key] = value;
+    }
+  });
+}
+function initializePersistentProperty(key, value) {
+  let persistentValue = getPersistentValue(key, value.initialValue);
+  if (persistentValue === null || persistentValue === void 0) {
+    persistentValue = value.initialValue;
+  }
+  setPersistentValue(key, persistentValue);
+  return { __isPersist: true, value: persistentValue };
+}
 
 // utils/parse.js
 var parseDataAttribute = (dataAttr, el) => {
@@ -828,9 +672,9 @@ directive("def", ({ el, directive: directive2 }) => {
     proxyData.$store = getStore();
     setData(el, proxyData);
     updateData(el);
-    const cleanup = onDataChange(el, () => updateData(el));
+    const cleanup2 = onDataChange(el, () => updateData(el));
     return () => {
-      cleanup();
+      cleanup2();
       delData(el);
       el.removeAttribute("a-def");
     };
@@ -875,10 +719,6 @@ var valueSetters = /* @__PURE__ */ new Map([
 ]);
 function updateElement(el, bindType, value) {
   if (!el) return;
-  if (el.tagName === "SELECT" && el.multiple && bindType === "value") {
-    updateMultipleSelect(el, value);
-    return;
-  }
   const currentValue = getElementValue(el, bindType);
   if (Object.is(currentValue, value)) return;
   setElementValue(el, bindType, value);
@@ -914,9 +754,7 @@ function handleTwoWayBindingInputUpdate(el, bindExpression, event) {
   if (!defElement) return;
   const data = getData(defElement);
   if (data) {
-    const updatedData = { ...data, [bindExpression]: newValue };
-    setData(defElement, updatedData);
-    updateData(defElement);
+    updateData(defElement, { [bindExpression]: newValue });
   }
 }
 function getTargetValue(el, event) {
@@ -960,23 +798,33 @@ directive("bind", ({ el, directive: directive2 }) => {
   const bindType = directive2.value || "text";
   const bindExpression = directive2.expression;
   if (!bindExpression) {
-    handleError("Empty bind expression", null, el);
+    handleError("La expresi\xF3n de binding est\xE1 vac\xEDa", null, el);
     return;
   }
+  const dataOwner = findAncestor(el, (ele) => ele.__asor_def);
+  if (!dataOwner) {
+    handleError("No se encontr\xF3 un propietario de datos para la directiva a-bind", el);
+    return;
+  }
+  let inputCleanup = null;
   const update = async () => {
-    const data = getData(el);
-    const value = await evaluateInContext(el, bindExpression, { data });
-    if (isUndefined(value)) return;
-    mutateDom(async () => {
+    try {
+      const data = getData(dataOwner);
+      const value = await evaluateInContext(el, bindExpression, { data });
+      if (isUndefined(value)) return;
       updateElement(el, bindType, value);
-      setupInputEvent(el, bindExpression);
-    });
+      if (inputCleanup) inputCleanup();
+      inputCleanup = setupInputEvent(el, bindExpression);
+    } catch (error) {
+      handleError("Error al actualizar el binding:", error, el);
+    }
   };
   update();
-  const cleanup = onAttributeChanged((element, attributeName) => {
-    if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) update();
-  });
-  return () => cleanup;
+  const cleanupDataChange = onDataChange(dataOwner, () => update());
+  return () => {
+    cleanupDataChange();
+    if (inputCleanup) inputCleanup();
+  };
 });
 
 // directives/a-init.js
@@ -1001,14 +849,14 @@ directive("effect", ({ el, directive: directive2 }) => {
     const effectResult = await evaluateInContext(el, expression, { data });
     if (isFunction(effectResult)) return await effectResult();
   };
-  let cleanup;
+  let cleanup2;
   const executeEffect = async () => {
-    if (cleanup) {
-      cleanup();
-      cleanup = null;
+    if (cleanup2) {
+      cleanup2();
+      cleanup2 = null;
     }
     const newCleanup = await runEffect();
-    if (isFunction(newCleanup)) cleanup = newCleanup;
+    if (isFunction(newCleanup)) cleanup2 = newCleanup;
   };
   executeEffect();
   return onDataChange(el, executeEffect);
@@ -1139,10 +987,10 @@ var DataCollection = class {
       this.formData.append(button.name, button.value || button.textContent);
   }
   addDirectiveData(el) {
-    const dataDirective = getDirectiveValue(el, "data");
+    const dataDirective = getDirectiveValue2(el, "data");
     if (dataDirective)
       this.formData.append(dataDirective.value, dataDirective.expression);
-    const addDirective = getDirectiveValue(el, "add");
+    const addDirective = getDirectiveValue2(el, "add");
     if (addDirective)
       try {
         const addData = JSON.parse(addDirective.expression);
@@ -1184,7 +1032,7 @@ var DataCollection = class {
 
 // features/supportSwapMethod.js
 function getSwapDirective(el) {
-  return getDirectiveValue(el, "swap")?.expression || "innerHTML";
+  return getDirectiveValue2(el, "swap")?.expression || "innerHTML";
 }
 var swapFunctions = {
   innerHTML: (el, content) => {
@@ -1217,10 +1065,8 @@ var swapFunctions = {
 };
 function applySwapMethod(el, content, swapMethod) {
   try {
-    mutateDom(() => {
-      const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
-      swapFunction(el, content);
-    });
+    const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
+    swapFunction(el, content);
   } catch (error) {
     handleError(`Error applying swap method "${swapMethod}":`, error);
   }
@@ -1235,7 +1081,7 @@ var createNodesFromHTML = (content) => {
 var targetCache = /* @__PURE__ */ new WeakMap();
 function getTargetDirective(el) {
   if (targetCache.has(el)) return targetCache.get(el);
-  const target = getDirectiveValue(el, "target");
+  const target = getDirectiveValue2(el, "target");
   if (target) {
     const selector = target.expression?.trim();
     if (selector) {
@@ -1251,7 +1097,7 @@ function getTargetDirective(el) {
   return el;
 }
 function removeTargetDirectiveIfNecessary(el) {
-  const target = getDirectiveValue(el, "target");
+  const target = getDirectiveValue2(el, "target");
   if (target?.modifiers.includes("once")) {
     el.removeAttribute(target.directive);
     targetCache.delete(el);
@@ -1301,7 +1147,7 @@ function cleanupElement(el) {
   Array.from(el.children).forEach(cleanupElement);
 }
 function applyTransition(el) {
-  const transition = getDirectiveValue(el, "transition");
+  const transition = getDirectiveValue2(el, "transition");
   if (!transition) return;
   dispatch(el, "asor:transition", { visible: true });
 }
@@ -1316,12 +1162,10 @@ function scheduleUpdate2() {
   }
 }
 function flushDomUpdates() {
-  mutateDom(() => {
-    for (const { el, updateFn } of updateQueue2) {
-      updateFn(el);
-    }
-    updateQueue2.clear();
-  });
+  for (const { el, updateFn } of updateQueue2) {
+    updateFn(el);
+  }
+  updateQueue2.clear();
   isUpdating = false;
 }
 
@@ -1364,7 +1208,7 @@ var Request = class {
   }
   getContentType(el) {
     const collectedData = collectData(el);
-    return isForm(el) || collectedData.hasFiles() ? void 0 : getDirectiveValue(el, "enctype")?.expression || "application/json";
+    return isForm(el) || collectedData.hasFiles() ? void 0 : getDirectiveValue2(el, "enctype")?.expression || "application/json";
   }
   prepareRequestBody(el, collectedData) {
     return isForm(el) || collectedData.hasFiles() ? collectedData.get() : JSON.stringify(collectedData.toObject());
@@ -1390,7 +1234,7 @@ var Request = class {
     dispatch(document, "asor:render", { html: responseText });
   }
   getTargetDirective(el) {
-    const targetSelector = getDirectiveValue(el, "target")?.expression;
+    const targetSelector = getDirectiveValue2(el, "target")?.expression;
     return targetSelector ? document.querySelector(targetSelector) : el;
   }
   handlerError(error, el) {
@@ -1401,7 +1245,7 @@ var Request = class {
 
 // utils/confirm.js
 async function ifConfirm(el) {
-  const confirmDirective = getDirectiveValue(el, "confirm");
+  const confirmDirective = getDirectiveValue2(el, "confirm");
   if (!confirmDirective?.expression) return true;
   return new Promise((resolve) => {
     if (isFunction(el.__confirm_action))
@@ -1509,21 +1353,21 @@ var handleEvent = async (el, event, handler) => {
 var isKeyEvent = (event) => event.type?.startsWith("key");
 var checkKeyModifiers = (event, keyModifiers) => keyModifiers.every((key) => MODIFIER_KEYS.includes(key) ? event[`${key}Key`] : event.keyCode === keyCodeMap[key]);
 var setupIntersectionObserver = (el, callback, options = {}) => {
-  const observer2 = new IntersectionObserver((entries) => {
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         try {
           callback(entry, el);
-          if (options.once) observer2.unobserve(el);
-          if (options.disconnect) observer2.disconnect();
+          if (options.once) observer.unobserve(el);
+          if (options.disconnect) observer.disconnect();
         } catch (err) {
           handleError("Error in IntersectionObserver callback:", err);
         }
       }
     });
   }, options);
-  observer2.observe(el);
-  return () => observer2.disconnect();
+  observer.observe(el);
+  return () => observer.disconnect();
 };
 var setupOutsideEvent = (el, eventName, handler, options = {}) => listen(document, eventName, (event) => {
   if (!el.contains(event.target)) handler(event);
@@ -1553,19 +1397,19 @@ directive("xhr", ({ el, directive: directive2, manager }) => {
       el.__xhr_request_in_progress = false;
     }
   };
-  let cleanup = () => {
+  let cleanup2 = () => {
   };
   if (!manager.hasDirective("on")) {
     const eventHandler = createEventHandler(el, xhrHandler, {
       preventDefault: true,
       stopPropagation: true
     });
-    cleanup = listen(el, defaultEvent, eventHandler);
+    cleanup2 = listen(el, defaultEvent, eventHandler);
   } else {
     el.__xhr_handler = xhrHandler;
   }
   return () => {
-    cleanup();
+    cleanup2();
     delete el.__xhr_handler;
     delete el.__xhr_request_in_progress;
   };
@@ -1622,10 +1466,10 @@ directive("on", ({ el, directive: directive2 }) => {
       return result;
     };
     const wrappedHandler = createEventHandler(el, handler, options);
-    const cleanup = eventNames.map(
+    const cleanup2 = eventNames.map(
       (event) => event === "intersect" ? setupIntersectObserver(el, wrappedHandler, options) : applyEventListener(el, event, wrappedHandler, options)
     );
-    return () => cleanup.forEach((cleanup2) => cleanup2());
+    return () => cleanup2.forEach((cleanup3) => cleanup3());
   } catch (error) {
     handleError(`Error evaluating expression in a-on directive: ${error.message}`, el);
   }
@@ -1641,7 +1485,7 @@ function applyEventListener(el, event, handler, options) {
 async function createItemElement(templateContent, item, key, length, parentData, iteratorNames, el) {
   const template = document.createElement("template");
   template.innerHTML = templateContent.trim();
-  const itemEl = template.content.firstElementChild || template.content.firstChild;
+  let itemEl = template.content.firstElementChild || template.content.firstChild;
   if (!itemEl) {
     handleError("Invalid template in a-for directive", el);
     return null;
@@ -1656,12 +1500,11 @@ async function createItemElement(templateContent, item, key, length, parentData,
   };
   setData(itemEl, itemData);
   updateData(itemEl);
-  const ifDirective = getDirectiveValue(itemEl, "if");
+  const ifDirective = getDirectiveValue2(itemEl, "if");
   if (ifDirective && !await evaluateInContext(itemEl, ifDirective.expression, itemData)) return null;
-  const showDirective = getDirectiveValue(itemEl, "show");
-  if (showDirective) {
+  const showDirective = getDirectiveValue2(itemEl, "show");
+  if (showDirective)
     itemEl.style.display = await evaluateInContext(itemEl, showDirective.expression, itemData) ? "" : "none";
-  }
   findElementsWithAsorDirectives(itemEl).forEach((childEl) => {
     if (ifElementHasAnyDirective(childEl))
       initDirectives(childEl);
@@ -1674,12 +1517,20 @@ async function appendItems(el, items, parentData, templateContent, iteratorNames
     return;
   }
   const isArray2 = Array.isArray(items);
-  const entries = isArray2 ? items : isObject(items) ? Object.entries(items) : [];
-  for (let index = 0; index < entries.length; index++) {
-    const [key, value] = isArray2 ? [index, entries[index]] : entries[index];
+  const entries = isArray2 ? items : Object.entries(items);
+  const fragment = document.createDocumentFragment();
+  const generatedItems = el.parentElement.querySelectorAll('[data-asor-generated="true"]');
+  generatedItems.forEach((itemEl) => itemEl.remove());
+  for (const [index, entry] of entries.entries()) {
+    const key = isArray2 ? index : entry[0];
+    const value = isArray2 ? entry : entry[1];
     const itemEl = await createItemElement(templateContent, value, key, entries.length, parentData, iteratorNames, el);
-    if (itemEl) el.appendChild(itemEl);
+    if (itemEl) {
+      itemEl.setAttribute("data-asor-generated", "true");
+      fragment.appendChild(itemEl);
+    }
   }
+  el.parentElement.insertBefore(fragment, el.nextSibling);
 }
 
 // directives/a-for.js
@@ -1691,27 +1542,27 @@ directive("for", ({ el, directive: directive2 }) => {
   }
   const templateContent = el.innerHTML;
   el.innerHTML = "";
-  const updateList = () => {
-    mutateDom(async () => {
-      const parentData = getData(el.parentElement);
-      if (!parentData) {
-        warn("No parent data found for a-for directive", el);
-        return;
-      }
-      const items = await evaluateInContext(el.parentElement, iteratorNames.items, parentData);
-      if (isUndefined(items)) {
-        warn(`${iteratorNames.items} is not defined`, el);
-        return;
-      }
-      el.innerHTML = "";
-      await appendItems(el, items, parentData, templateContent, iteratorNames);
-    });
+  const dataOwner = findAncestor(el, (ele) => ele.__asor_def);
+  if (!dataOwner) {
+    handleError("No data owner found for a-for directive", el);
+    return;
+  }
+  let isInitialized = false;
+  const updateList = async () => {
+    const parentData = dataOwner.__asor_def;
+    const items = await evaluateInContext(el, iteratorNames.items, parentData);
+    if (isUndefined(items)) {
+      warn(`${iteratorNames.items} is not defined`, el);
+      return;
+    }
+    await appendItems(el, items, parentData, templateContent, iteratorNames);
+    isInitialized = true;
   };
   updateList();
-  const cleanup = onAttributeChanged((element, attributeName) => {
-    if (element === el.parentElement && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) updateList();
+  const cleanup2 = onDataChange(dataOwner, () => {
+    if (isInitialized) updateList();
   });
-  return () => cleanup();
+  return () => cleanup2();
 });
 
 // directives/a-if.js
@@ -1719,7 +1570,7 @@ directive("if", ({ el, directive: directive2 }) => {
   const { expression } = directive2;
   const placeholder = document.createComment(`if: ${expression}`);
   let isConnected = false;
-  const cleanup = mutateDom(() => {
+  const cleanup2 = () => {
     const shouldShow = evaluateInContext(el, expression);
     if (shouldShow && !isConnected && el.parentNode) {
       el.parentNode.insertBefore(placeholder, el.nextSibling);
@@ -1728,10 +1579,10 @@ directive("if", ({ el, directive: directive2 }) => {
       el.parentNode.replaceChild(placeholder, el);
       isConnected = false;
     }
-  });
+  };
   if (el.parentNode) el.parentNode.insertBefore(placeholder, el.nextSibling);
   return () => {
-    cleanup();
+    cleanup2();
     if (placeholder.parentNode) placeholder.remove();
     if (isConnected && el.parentNode) el.remove();
   };
@@ -1740,28 +1591,30 @@ directive("if", ({ el, directive: directive2 }) => {
 // directives/a-show.js
 directive("show", ({ el, directive: directive2 }) => {
   const { expression, modifiers } = directive2;
+  const root = findRootElement(el);
+  if (!root) {
+    console.error("No se encontr\xF3 un elemento ra\xEDz con a-def para la directiva a-show.");
+    return;
+  }
   const update = async () => {
     try {
       const visible = await evaluateInContext(el, expression);
-      if (!isUndefined(visible)) updateVisibility(el, visible, modifiers.has("important"));
+      if (!isUndefined(visible))
+        updateVisibility(el, visible, modifiers.has("important"));
     } catch (error) {
       console.error(`Error updating visibility for element:`, el, error);
     }
   };
   update();
-  const cleanup = onAttributeChanged((element, attributeName) => {
-    if (element.contains(el) && attributeName.startsWith(DATA_ATTRIBUTE_PREFIX)) update();
-  });
-  return cleanup;
+  const cleanup2 = onDataChange(root, () => update());
+  return () => cleanup2();
 });
 function updateVisibility(el, visible, isImportant) {
-  const transitionDirective = getDirectiveValue(el, "transition");
+  const transitionDirective = getDirectiveValue2(el, "transition");
   if (transitionDirective) dispatch(el, "asor:transition", { visible });
   else {
-    mutateDom(() => {
-      el.style.display = visible ? "" : "none";
-      if (isImportant) el.style.setProperty("display", el.style.display, "important");
-    });
+    el.style.display = visible ? "" : "none";
+    if (isImportant) el.style.setProperty("display", el.style.display, "important");
   }
 }
 
@@ -1903,27 +1756,10 @@ var NavigationManager = class {
     if (this.cache.has(cacheKey)) {
       const response = this.cache.get(cacheKey);
       await this.renderView(response.html);
-      this.rehydrateBindings();
     } else {
       await this.navigate(url, { pushState: false });
     }
   };
-  rehydrateBindings() {
-    document.querySelectorAll("*").forEach((el) => {
-      const dataAttrs = Array.from(el.attributes).filter((attr) => attr.name.startsWith(DATA_ATTRIBUTE_PREFIX));
-      if (dataAttrs.length > 0) {
-        dataAttrs.forEach((dataAttr) => {
-          try {
-            const data = JSON.parse(sessionStorage.getItem(dataAttr.name) || "{}");
-            setData(el, data);
-            updateData(el);
-          } catch (error) {
-            handleError("Error when rehydrating bindings", error);
-          }
-        });
-      }
-    });
-  }
   async navigate(url, options = { pushState: true }) {
     try {
       this.clearExecutedScripts();
@@ -2130,10 +1966,8 @@ directive("transition", ({ el, directive: directive2 }) => {
     currentVisibility = isEnter;
     const phase = isEnter ? "enter" : "leave";
     const duration = isEnter ? options.enterDuration : options.leaveDuration;
-    mutateDom(() => {
-      if (options.useClasses) applyTransitionClasses(el, phase, duration);
-      else applyTransitionStyles(el, isEnter, options);
-    });
+    if (options.useClasses) applyTransitionClasses(el, phase, duration);
+    else applyTransitionStyles(el, isEnter, options);
     setTimeout(() => {
       isTransitioning = false;
       if (!isEnter) el.style.display = "none";
@@ -2146,46 +1980,42 @@ directive("transition", ({ el, directive: directive2 }) => {
       applyTransition2(visible);
     }
   };
-  const cleanup = listen(el, "asor:transition", handleTransition);
+  const cleanup2 = listen(el, "asor:transition", handleTransition);
   currentVisibility = window.getComputedStyle(el).display !== "none";
   if (!currentVisibility) {
     el.style.display = "none";
   }
-  return cleanup;
+  return cleanup2;
 });
 function applyTransitionClasses(el, phase, duration) {
-  mutateDom(() => {
-    const transitionClass = getDirectiveValue(el, `transition:${phase}`)?.expression;
-    const startClass = getDirectiveValue(el, `transition:${phase}-start`)?.expression;
-    const endClass = getDirectiveValue(el, `transition:${phase}-end`)?.expression;
-    if (transitionClass) el.classList.add(transitionClass);
-    if (startClass) {
-      el.classList.add(startClass);
+  const transitionClass = getDirectiveValue2(el, `transition:${phase}`)?.expression;
+  const startClass = getDirectiveValue2(el, `transition:${phase}-start`)?.expression;
+  const endClass = getDirectiveValue2(el, `transition:${phase}-end`)?.expression;
+  if (transitionClass) el.classList.add(transitionClass);
+  if (startClass) {
+    el.classList.add(startClass);
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.classList.remove(startClass);
-          if (endClass) el.classList.add(endClass);
-        });
+        el.classList.remove(startClass);
+        if (endClass) el.classList.add(endClass);
       });
-    }
-    setTimeout(() => {
-      if (transitionClass) el.classList.remove(transitionClass);
-      if (endClass) el.classList.remove(endClass);
-    }, duration);
-  });
+    });
+  }
+  setTimeout(() => {
+    if (transitionClass) el.classList.remove(transitionClass);
+    if (endClass) el.classList.remove(endClass);
+  }, duration);
 }
 function applyTransitionStyles(el, isEnter, options) {
-  mutateDom(() => {
-    el.style.transition = "none";
-    void el.offsetWidth;
-    el.style.opacity = isEnter ? options.initialOpacity : "1";
-    if (options.scale) el.style.transform = `scale(${isEnter ? options.initialScale : "1"})`;
-    void el.offsetWidth;
-    el.style.transition = `all ${isEnter ? options.enterDuration : options.leaveDuration}ms ${options.easing}`;
-    el.style.opacity = isEnter ? "1" : options.initialOpacity;
-    if (options.scale) el.style.transform = `scale(${isEnter ? "1" : options.initialScale})`;
-    if (options.origin !== "center") el.style.transformOrigin = options.origin;
-  });
+  el.style.transition = "none";
+  void el.offsetWidth;
+  el.style.opacity = isEnter ? options.initialOpacity : "1";
+  if (options.scale) el.style.transform = `scale(${isEnter ? options.initialScale : "1"})`;
+  void el.offsetWidth;
+  el.style.transition = `all ${isEnter ? options.enterDuration : options.leaveDuration}ms ${options.easing}`;
+  el.style.opacity = isEnter ? "1" : options.initialOpacity;
+  if (options.scale) el.style.transform = `scale(${isEnter ? "1" : options.initialScale})`;
+  if (options.origin !== "center") el.style.transformOrigin = options.origin;
 }
 function parseTransitionOptions(directive2) {
   const options = {
@@ -2218,7 +2048,7 @@ function parseTransitionOptions(directive2) {
       options.origin = value || "center";
     }
   });
-  if (getDirectiveValue(directive2.el, "transition:enter") || getDirectiveValue(directive2.el, "transition:leave")) {
+  if (getDirectiveValue2(directive2.el, "transition:enter") || getDirectiveValue2(directive2.el, "transition:leave")) {
     options.useClasses = true;
   }
   return options;
@@ -2226,22 +2056,20 @@ function parseTransitionOptions(directive2) {
 
 // utils/toggle.js
 function toggleState(el, directive2, isTruthy, cachedDisplay = null) {
-  mutateDom(() => {
-    isTruthy = directive2.hasModifier("remove") ? !isTruthy : isTruthy;
-    if (directive2.hasModifier("class")) {
-      let classes = directive2.expression.split(" ").filter(String);
-      if (isTruthy) el.classList.add(...classes);
-      else el.classList.remove(...classes);
-    } else if (directive2.hasModifier("attr")) {
-      if (isTruthy) el.setAttribute(directive2.expression, true);
-      else el.removeAttribute(directive2.expression);
-    } else {
-      let cache2 = cachedDisplay ?? getStyle(el, "display");
-      let display = ["inline", "block", "table", "flex", "grid", "inline-flex"].find((i) => directive2.hasModifier(i)) || "inline-block";
-      display = directive2.hasModifier("remove") && !isTruthy ? cache2 : display;
-      el.style.display = isTruthy ? display : "none";
-    }
-  });
+  isTruthy = directive2.hasModifier("remove") ? !isTruthy : isTruthy;
+  if (directive2.hasModifier("class")) {
+    let classes = directive2.expression.split(" ").filter(String);
+    if (isTruthy) el.classList.add(...classes);
+    else el.classList.remove(...classes);
+  } else if (directive2.hasModifier("attr")) {
+    if (isTruthy) el.setAttribute(directive2.expression, true);
+    else el.removeAttribute(directive2.expression);
+  } else {
+    let cache2 = cachedDisplay ?? getStyle(el, "display");
+    let display = ["inline", "block", "table", "flex", "grid", "inline-flex"].find((i) => directive2.hasModifier(i)) || "inline-block";
+    display = directive2.hasModifier("remove") && !isTruthy ? cache2 : display;
+    el.style.display = isTruthy ? display : "none";
+  }
 }
 
 // directives/a-loading.js
@@ -2303,7 +2131,7 @@ directive("offline", ({ el, directive: directive2 }) => {
 var RECONNECT_DELAY = 5e3;
 directive("stream", ({ el, directive: directive2 }) => {
   const url = directive2.expression;
-  const swapMethod = getDirectiveValue(el, "swap")?.expression || "innerHTML";
+  const swapMethod = getDirectiveValue2(el, "swap")?.expression || "innerHTML";
   let eventSource = null;
   const connect = () => {
     eventSource = new EventSource(url);
@@ -2319,7 +2147,7 @@ directive("stream", ({ el, directive: directive2 }) => {
     }
   };
   connect();
-  return onElementRemoved(el, () => disconnect);
+  return () => disconnect();
 });
 function handleMessage(el, event, swapMethod) {
   applySwapMethod(el, event.data, swapMethod);
@@ -2330,6 +2158,19 @@ function handleError2(el, error, reconnectCallback) {
   reconnectCallback();
   setTimeout(reconnectCallback, RECONNECT_DELAY);
 }
+
+// directives/a-id.js
+directive("id", async ({ el, directive: directive2 }) => {
+  const names = await evaluateInContext(el, directive2.expression?.trim());
+  if (!Array.isArray(names)) {
+    console.error("a-id directive requires an array expression.");
+    return;
+  }
+  if (!el._asor_ids) el._asor_ids = {};
+  names.forEach((key) => {
+    if (!el._asor_ids[key]) el._asor_ids[key] = generateUniqueId(key);
+  });
+});
 
 // index.js
 var Asor = {

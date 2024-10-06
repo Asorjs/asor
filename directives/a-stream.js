@@ -1,6 +1,5 @@
 import { directive, getDirectiveValue } from "../directives.js";
 import { applySwapMethod } from "../features/supportSwapMethod.js";
-import { onElementRemoved } from "../features/supportMutationObserver.js";
 import { dispatch } from "../utils/events.js";
 
 const RECONNECT_DELAY = 5000;
@@ -27,7 +26,7 @@ directive("stream", ({ el, directive }) => {
     };
 
     connect();
-    return onElementRemoved(el, () => disconnect);
+    return () => disconnect();
 });
 
 function handleMessage(el, event, swapMethod) {

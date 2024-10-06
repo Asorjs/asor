@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Dropdown with Flags and Dynamic Select</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script> -->
+
+    <!-- asor dist  -->
+    <script src="dist/asor.js" defer></script>
+
+
+    <!-- prueba js -->
+    <!-- <script src="prueba.js" defer></script> -->
+
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-gray-100">
+
+    <div a-def="{
+        open: false,
+        selectedCountry: { name: 'Select Country', flag: '', states: [] },
+        countries: [
+          {
+            name: 'United States',
+            flag: 'https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg',
+            states: ['California', 'Texas', 'Florida', 'New York', 'Illinois']
+          },
+          {
+            name: 'Germany',
+            flag: 'https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg',
+            states: ['Bavaria', 'North Rhine-Westphalia', 'Baden-Württemberg', 'Lower Saxony', 'Hesse']
+          },
+          {
+            name: 'Italy',
+            flag: 'https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg',
+            states: ['Lombardy', 'Lazio', 'Campania', 'Sicily', 'Veneto']
+          },
+          {
+            name: 'China',
+            flag: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg',
+            states: ['Guangdong', 'Shandong', 'Henan', 'Sichuan', 'Jiangsu']
+          }
+        ],
+        toggle() {
+          this.open = !this.open;
+          if (this.open) this.$refs.button.focus();
+        },
+        selectCountry(country) {
+          this.selectedCountry = country;
+          this.close();
+        },
+        close(focusAfter) {
+          if (!this.open) return;
+          this.open = false;
+          focusAfter && focusAfter.focus();
+        },
+        handleOutsideClick(e) {
+          if (!this.$refs.panel.contains(e.target) && !this.$refs.button.contains(e.target)) {
+            this.close(this.$refs.button);
+          }
+        }
+      }" @keydown.escape.prevent.stop="close($refs.button)" @click.outside="handleOutsideClick($event)"
+        class="relative inline-flex flex-col rounded-md shadow-sm">
+
+        <div class="flex">
+            <!-- Button with flag and country  -->
+            <button a-ref="button" @click="toggle()" :aria-expanded="open" :aria-controls="'dropdown-panel'"
+                type="button"
+                class="flex items-center gap-2 bg-white px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:z-10">
+                <img :src="selectedCountry.flag" alt="" class="h-4 w-4 mr-2" a-if="selectedCountry.flag">
+                <span :text="selectedCountry.name"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transition-transform duration-200"
+                    :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </button>
+
+
+            <div class="relative flex-grow">
+                <select
+                    class="appearance-none bg-white w-full border border-l-0 border-gray-300 text-gray-900 text-sm rounded-r-md focus:ring-blue-500 focus:border-blue-500 block p-2.5 pr-8 focus:outline-none focus:z-10">
+                    <option selected>Choose a state</option>
+                    <template a-for="state in selectedCountry.states">
+                        <option :value="state" :text="state"></option>
+                    </template>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dropdown panel  -->
+        <div a-ref="panel" a-show="open" a-transition.origin.top.left
+            class="absolute left-0 mt-12 w-52 rounded-md bg-white shadow-lg z-10" style="display: none;">
+            <template a-for="country in countries">
+                <button @click="selectCountry(country)"
+                    class="flex items-center gap-2 w-full px-4 py-2 text-left text-sm hover:bg-gray-100">
+                    <img :src="country.flag" class="h-4 w-4">
+                    <span :text="country.name"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
+</body>
+
+</html>

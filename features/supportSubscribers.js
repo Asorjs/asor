@@ -5,14 +5,17 @@ const updateQueue = new Set();
 let isProcessing = false;
 
 export function onDataChange(el, callback) {
-    if (!subscribers.has(el)) subscribers.set(el, new Set());
+    if (!subscribers.has(el)) subscribers.set(el, []);
+    
+    subscribers.get(el).push(callback);
 
-    subscribers.get(el).add(callback);
     return () => {
-        const subs = subscribers.get(el);
-        if (subs) {
-            subs.delete(callback);
-            if (subs.size === 0) subscribers.delete(el);
+        const callbacks = subscribers.get(el);
+        if (callbacks) {
+            const index = callbacks.indexOf(callback);
+            if (index > -1) callbacks.splice(index, 1);
+           
+            if (callbacks.length === 0) subscribers.delete(el);
         }
     };
 }

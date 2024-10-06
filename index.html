@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+
+    <!-- <script src="//unpkg.com/asor@latest/dist/asor.min.js" defer></script> -->
+    <!-- <script src="//unpkg.com/asor@latest/dist/asor.js" defer></script> -->
+    <script src="dist/asor.js"></script>
+
+</head>
+
+<body class="p-4 ">
+    <h2>Hola Mundo</h2>
+
+
+
+    <!-- PERSIST -->
+
+    <!-- counter persist -->
+    <div a-def="{ count: $persist(0) }">
+        <p :text="count"></p>
+        <button @click="count++">Incrementar</button>
+    </div>
+    <!--  end counter persist -->
+
+    <!-- modo ocuro persist -->
+    <div a-def="{ theme: $persist('light') }" :class="theme === 'dark' ? 'dark' : 'light'"
+        class="min-h-screen transition-colors duration-300">
+        <div class="container ma-auto p-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+            <h1 class="text-2xl font-bold mb-4">Ejemplo de Tema con Asor y Tailwind</h1>
+
+            <button @click="theme = theme === 'light' ? 'dark' : 'light'"
+                class="pa-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-800 transition-colors duration-200">
+                oscuro || claro
+            </button>
+
+            <p class="mt-4 text-lg">
+                Tema actual: <span class="font-semibold" :text="theme"></span>
+            </p>
+        </div>
+    </div>
+    <!-- end  modo ocuro persist-->
+
+
+    <!-- count persint nested -->
+    <div>
+        <div a-def="{ count: { foo: $persist(0) , car: $persist(0)} }">
+
+            <button @click="count.foo++"> Incrementar foo ++</button>
+            <button @click="count.foo--"> Decrementar foo--</button>
+
+            <button @click="count.car++"> Incrementar car ++</button>
+            <button @click="count.car--"> Decrementar car --</button>
+
+            <p :text="count.foo"></p>
+            <p :text="count.car"></p>
+
+        </div>
+
+    </div>
+    <!--  end count persint nested-->
+
+    <!-- end PERSIST -->
+
+
+    <!-- EJEMPLOS A-DEF -->
+
+    <!-- properties -->
+    <div a-def="{ name: 'Juan', age: 30 }">
+        <p :text="name"></p>
+        <p :text="age"></p>
+    </div>
+
+    <h1 a-def="{  message: 'I ❤️ Asor' }" :text="message"></h1>
+
+    <!-- end properties -->
+
+    <!-- end EJEMPLOS A-DEF -->
+
+
+    <!-- EJEMPLOS EVENTOS -->
+
+    <!-- notify (custom events) -->
+    <div @notify="alert($event.detail.message)">
+        <button @click="$dispatch('notify', { message: 'Hello World!2' })"
+            class="bg-gray-300 rounded p-3 mt-4 mb-4 ml-4 ">
+            custom event
+        </button>
+    </div>
+    <!-- end notify -->
+
+    <!-- comunicacion entre eventos -->
+    <div>
+        <div a-def="{ title: 'Hello' }" @set-title.window="title = $event.detail">
+            <h1 :text="title"></h1>
+        </div>
+
+        <div>
+            <button @click="$dispatch('set-title', 'Hello World!')" class="bg-yellow-200 rounded p-3 mt-4 mb-4 ml-4 ">
+                comunicacion entre componentes</button>
+        </div>
+    </div>
+    <!-- end comunicacion entre eventos -->
+
+    <!-- eventos dataset -->
+    <div a-def data-message="Hello World!">
+        <button @click="alert($root.dataset.message)" class="bg-blue-200 rounded p-3 mt-4 mb-4 ml-4 ">Dataset</button>
+    </div>
+    <!-- end eventos dataset  -->
+
+    <!-- end EJEMPLOS EVENTOS -->
+
+
+    <!-- EJEMPLOS TIMERS -->
+    <!-- timer -->
+    <main a-def="{
+            time: (0),
+            isRunning: false,
+            intervalId: null,
+            toggleTimer() {
+            this.isRunning = !this.isRunning;
+            if (this.isRunning) {
+            this.intervalId = setInterval(() => {
+            this.time++;
+            }, 1000);
+            } else {
+            clearInterval(this.intervalId);
+            }
+            },
+            resetTimer() {
+            clearInterval(this.intervalId);
+            this.isRunning = false;
+            this.time = 0;
+            }
+            }" class="flex flea-col items-center justify-center min-h-screen bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 class="text-6xl font-bold mb-8 text-gray-800">
+                <span :text="Math.floor(time / 60).toString().padStart(2, '0')"></span>:
+                <span :text="(time % 60).toString().padStart(2, '0')"></span>
+            </h2>
+            <div class="flex justify-center space-a-6">
+                <button @click="toggleTimer()"
+                    class="w-16 h-16 flex items-center justify-center bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8" :class="{'hidden': isRunning}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8" :class="{'hidden': !isRunning}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+                <button @click="resetTimer()"
+                    class="w-16 h-16 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+    <!-- end timer  -->
+
+
+    <!-- $persist timer -->
+
+    <main a-def="{
+            time: $persist(0),
+            isRunning: false,
+            intervalId: null,
+            toggleTimer() {
+            this.isRunning = !this.isRunning;
+            if (this.isRunning) {
+            this.intervalId = setInterval(() => {
+            this.time++;
+            }, 1000);
+            } else {
+            clearInterval(this.intervalId);
+            }
+            },
+            resetTimer() {
+            clearInterval(this.intervalId);
+            this.isRunning = false;
+            this.time = 0;
+            }
+            }" class="flex flea-col items-center justify-center min-h-screen bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 class="text-6xl font-bold mb-8 text-gray-800">
+                <span :text="Math.floor(time / 60).toString().padStart(2, '0')"></span>:
+                <span :text="(time % 60).toString().padStart(2, '0')"></span>
+            </h2>
+            <div class="flex justify-center space-a-6">
+                <button @click="toggleTimer()"
+                    class="w-16 h-16 flex items-center justify-center bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8" :class="{'hidden': isRunning}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8" :class="{'hidden': !isRunning}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+                <button @click="resetTimer()"
+                    class="w-16 h-16 flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+    <!-- end $persist timer -->
+
+    <!-- end EJEMPLOS TIMERS -->
+
+
+    <!-- EJEMPLOS LOGGERS -->
+
+    <!-- logger -->
+
+    <div a-def="{ loggedIn: true }" class="bg-gradient-to-r from-purple-500 to-pink-500 p-8 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold text-white mb-4" :text="loggedIn ? 'Welcome Back!' : 'Please Log In'"></h2>
+        <button @click="loggedIn = !loggedIn">
+            <div class="relative w-8 h-8">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-white absolute transition-transform duration-500 ease-in-out"
+                    :style="loggedIn ? 'opacity: 0; transform: rotate(180deg) scale(0.5);' : 'opacity: 1; transform: rotate(0deg) scale(1);'"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-white absolute transition-transform duration-500 ease-in-out"
+                    :style="loggedIn ? 'opacity: 1; transform: rotate(0deg) scale(1);' : 'opacity: 0; transform: rotate(-180deg) scale(0.5);'"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </div>
+        </button>
+        <p class="mt-4 text-white text-opacity-80"
+            :text="loggedIn ? 'You are currently logged in.' : 'Click to log in.'"></p>
+    </div>
+    </div>
+
+    <!-- end EJEMPLOS LOGGERS -->
+
+
+    <!-- EJEMPLOS INTERACTIVE -->
+
+    <!-- intereactive calculador -->
+    <div a-def="{ a: 1, b: 2 }" class="maa-w-md ma-auto bg-white shadow-lg rounded-lg overflow-hidden p-6 space-y-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Interactive Calculator</h2>
+
+        <div class="space-y-4">
+            <label class="block">
+                <span class="text-gray-700">Value A:</span>
+                <div class="flex items-center space-a-4 mt-1">
+                    <input type="number" @input="a = $event.target.value" :value="a" min="0" max="10"
+                        class="w-20 pa-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200" />
+                    <input type="range" @input="a = $event.target.value" :value="a" min="0" max="10"
+                        class="flea-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
+                </div>
+            </label>
+
+            <label class="block">
+                <span class="text-gray-700">Value B:</span>
+                <div class="flex items-center space-a-4 mt-1">
+                    <input type="number" @input="b = $event.target.value" :value="b" min="0" max="10"
+                        class="w-20 pa-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200" />
+                    <input type="range" @input="b = $event.target.value" :value="b" min="0" max="10"
+                        class="flea-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
+                </div>
+            </label>
+        </div>
+
+        <div class="bg-gray-100 rounded-lg p-4 mt-6">
+            <p class="text-lg font-semibold text-gray-800" :text="`${a} + ${b} = ${Number(a) + Number(b)}`"></p>
+        </div>
+    </div>
+    <!--  end intereactive calculador -->
+
+
+    <!-- convert temperature -->
+    <main a-def="{
+            celsius: 0,
+            fahrenheit: 32,
+            updateCelsius(event) {
+                this.celsius = parseFloat(event.target.value) || 0;
+                this.fahrenheit = ((this.celsius * 9) / 5 + 32).toFixed(1);
+            },
+            updateFahrenheit(event) {
+                this.fahrenheit = parseFloat(event.target.value) || 32;
+                this.celsius = (((this.fahrenheit - 32) * 5) / 9).toFixed(1);
+            }
+        }" class="maa-w-md ma-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Conversor de Temperatura</h2>
+
+        <div class="flex flea-col md:flea-row justify-center items-center space-y-4 md:space-y-0 md:space-a-4">
+            <div class="relative">
+                <input type="number" @input="updateCelsius($event)" :value="celsius" step="0.1"
+                    class="w-32 pa-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200" />
+                <span class="absolute right-3 top-2 text-gray-600">°C</span>
+            </div>
+
+            <div class="text-2xl font-bold text-gray-600">=</div>
+
+            <div class="relative">
+                <input type="number" @input="updateFahrenheit($event)" :value="fahrenheit" step="0.1"
+                    class="w-32 pa-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200" />
+                <span class="absolute right-3 top-2 text-gray-600">°F</span>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-gray-700">
+                <span class="font-semibold">Celsius:</span>
+                <span class="text-blue-600 font-bold" :text="celsius"></span>°C
+            </p>
+            <p class="text-gray-700 mt-2">
+                <span class="font-semibold">Fahrenheit:</span>
+                <span class="text-red-600 font-bold" :text="fahrenheit"></span>°F
+            </p>
+        </div>
+    </main>
+
+    <!-- end convert temperature -->
+    <!-- end EJEMPLOS INTERACTIVE -->
+
+
+
+
+    <!-- EJEMPLOS a-for-->
+
+    <div a-def="{
+        tags: ['h1', 'h3', 'p', 'span'],
+        selected: 'h3',
+    }" class="maa-w-md mt-8 p-6 bg-white rounded-lg shadow-md">
+
+        <select :value="selected" class="w-full p-2 border border-gray-300 rounded-md">
+            <template a-for="tag in tags">
+                <option :value="tag" :text="tag"></option>
+            </template>
+        </select>
+
+        <p class="mt-4 text-gray-700">
+            Elemento seleccionado:
+            <span :text="selected" class="font-bold text-blue-600"></span>
+        </p>
+    </div>
+    <!--  -->
+
+
+    <div a-def="
+        {
+            colors: ['Red', 'Orange', 'Yellow', 'blue', 'violet'], 
+            selected: 'Orange',
+            addColor(color) { if (color && color.length > 0) this.colors.push(color) },
+            get colorCount() { return this.colors.length }
+        }">
+        <h2>Color Selector</h2>
+
+        <div>
+            <label>Choose a color:</label>
+            <select :value="selected">
+                <template a-for="color in colors">
+                    <option :value="color" :text="color"></option>
+                </template>
+            </select>
+        </div>
+
+        <p>Selected color: <span :style="{ color: selected }" :text="selected"></span></p>
+
+        <div>
+            <label>Add a new color:</label>
+            <input type="text" a-ref="newColorInput"
+                @keyup.enter="addColor($refs.newColorInput.value), $refs.newColorInput.value = ''">
+            <button @click="addColor($refs.newColorInput.value), $refs.newColorInput.value = ''">
+                Add Color
+            </button>
+        </div>
+
+        <p>Total colors: <span :text="colorCount"></span></p>
+
+        <ul>
+            <template a-for="color in colors">
+                <li :style="{ color: color }" :text="color"></li>
+            </template>
+        </ul>
+
+    </div>
+    <!--  -->
+
+    <!-- todo list -->
+
+    <div class="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+            <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Asor Todo List</h1>
+            <div a-def="{
+                todos: [
+                    { text: 'estudie', completed: false },
+                    { text: 'work', completed: false }
+                ],
+                addTodo(task) {
+                    if (!task) return;
+                    this.todos.push({ text: task, completed: false });
+                },
+                toggleTodo(todo) {
+                    if (todo) todo.completed = !todo.completed;
+                },
+                removeTodo(todo) {
+                    const index = this.todos.indexOf(todo);
+                    if (index > -1) this.todos.splice(index, 1);
+                },
+                pendingTodos() {
+                    return this.todos.filter(t => t && !t.completed);
+                },
+                completedTodos() {
+                    return this.todos.filter(t => t && t.completed);
+                },
+                get countTask() { 
+                    return this.todos.filter(t => t && !t.completed).length;
+                }
+            }">
+
+                <div>
+                    <label>Add a new color:</label>
+                    <input type="text" a-ref="newTask"
+                        @keyup.enter="addTodo($event.target.value), $event.target.value = '' "
+                        placeholder="Enter a new todo"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button @click="addTodo($refs.newTask.value), $refs.newTask.value = ''"
+                        class="mt-2 w-full bg-blue-500 text-white py-2 px-4 mb-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Add task
+                    </button>
+                </div>
+
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">Pending Tasks</h2>
+                <ul class="mb-4">
+                    <template a-for="todo in pendingTodos()">
+                        <li class="flex items-center justify-between mb-2 bg-gray-50 p-2 rounded">
+                            <div class="flex items-center">
+                                <input type="checkbox" :checked="todo.completed" @change="toggleTodo(todo)"
+                                    class="mr-2">
+                                <span :class="{ 'line-through text-gray-400': todo.completed }"
+                                    :text="todo.text"></span>
+                            </div>
+                            <button @click="removeTodo(todo)" class="text-red-500 hover:text-red-700 flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" aria-hidden="true">
+                                    <g fill="none" fill-rule="evenodd">
+                                        <path d="M0 0h24v24H0z"></path>
+                                        <rect width="14" height="1" x="5" y="6" fill="currentColor" rx="0.5"></rect>
+                                        <path fill="currentColor" d="M10 9h1v8h-1V9zm3 0h1v8h-1V9z"></path>
+                                        <path stroke="currentColor"
+                                            d="M17.5 6.5h-11V18A1.5 1.5 0 0 0 8 19.5h8a1.5 1.5 0 0 0 1.5-1.5V6.5zm-9 0h7V5A1.5 1.5 0 0 0 14 3.5h-4A1.5 1.5 0 0 0 8.5 5v1.5z">
+                                        </path>
+                                    </g>
+                                </svg>
+                                Delete
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">Completed Tasks</h2>
+                <ul>
+                    <template a-for="todo in completedTodos()">
+                        <li class="flex items-center justify-between mb-2 bg-gray-50 p-2 rounded">
+                            <div class="flex items-center">
+                                <input type="checkbox" :checked="todo.completed" @change="toggleTodo(todo)"
+                                    class="mr-2">
+                                <span :class="{ 'line-through text-gray-400': todo.completed }"
+                                    :text="todo.text"></span>
+                            </div>
+                            <button @click="removeTodo(todo)" class="text-red-500 hover:text-red-700 flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" aria-hidden="true">
+                                    <g fill="none" fill-rule="evenodd">
+                                        <path d="M0 0h24v24H0z"></path>
+                                        <rect width="14" height="1" x="5" y="6" fill="currentColor" rx="0.5"></rect>
+                                        <path fill="currentColor" d="M10 9h1v8h-1V9zm3 0h1v8h-1V9z"></path>
+                                        <path stroke="currentColor"
+                                            d="M17.5 6.5h-11V18A1.5 1.5 0 0 0 8 19.5h8a1.5 1.5 0 0 0 1.5-1.5V6.5zm-9 0h7V5A1.5 1.5 0 0 0 14 3.5h-4A1.5 1.5 0 0 0 8.5 5v1.5z">
+                                        </path>
+                                    </g>
+                                </svg>
+                                Delete
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+
+                <span :text="'total: ' + countTask"></span>
+            </div>
+        </div>
+    </div>
+
+    <!--  -->
+
+
+    <!-- items -->
+    <div class=" m-8 p-8" a-def="{
+            items: ['Item 1', 'Item 2', 'Item 3', 'Item 4'],
+            removeItem(index) {
+                console.log('removeItem', index);
+                this.items = this.items.filter((_, i) => i !== index);
+            }
+        }">
+        <ul>
+            <template a-for="(item, index) in items">
+                <li>
+                    <span :text="item"></span>
+                    <button @click="removeItem(index)">Eliminar </button>
+                </li>
+            </template>
+        </ul>
+    </div>
+    <!--end items  -->
+
+
+    <!--  -->
+
+    <!-- end EJEMPLOS a-for-->
+
+    <br />
+    <br />
+    <br />
+    <br />
+
+
+    <!-- .... -->
+
+    807 456 453
+
+
+    <!-- EJEMPLOS CUSTOM COMPONENTS-->
+
+    <div a-def="{ num: -2 }" a-text-color="num" @set-num.window="num = $event.detail">
+        <button @click="$dispatch('set-num', 2)">Texto Green Click me</button>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            Asor.directive('text-color', ({
+                el,
+                directive
+            }) => {
+                const updateColor = async () => {
+                    try {
+                        const value = Number(await Asor.evaluate(el, directive.expression));
+                        el.style.color = value > 0 ? 'green' : value < 0 ? 'red' : 'black';
+                    } catch (error) {
+                        console.error('Error in text-color directive:', error);
+                        el.style.color = 'black'; // Default color in case of error
+                    }
+                };
+
+                updateColor();
+                return typeof Asor.onDataChange === 'function' ? Asor.onDataChange(el, updateColor) : console.warn('Asor.onDataChange is not available');
+            });
+        });
+    </script>
+
+    <!-end EJEMPLOS CUSTOM COMPONENTS-->
+
+
+
+
+        <br>
+        <br>
+        <br>
+        <!--  -->
+        <!-- <div class="p-6">
+        <div a-def="{
+            async fetchData () {
+                const response = await fetch('http://127.0.0.1:3000/home.html');
+                return response.text();
+            }
+        }">
+            <p :html="fetchData()"></p>
+        </div>
+    </div> -->
+
+
+        <br>
+
+        <!-- 
+     -->
+
+        <div a-def="{
+            search: '',
+    
+            items: ['foo', 'bar', 'baz'],
+    
+            get filteredItems() {
+                return this.items.filter(
+                    i => i.startsWith(this.search)
+                )
+            }
+        }">
+            <input @input="search = $event.target.value" placeholder="Search...">
+
+            <ul>
+                <template a-for="item in filteredItems">
+                    <li :text="item "></li>
+                </template>
+            </ul>
+
+        </div>
+
+
+
+
+
+        <!--  -->
+
+        <div>
+            <div a-def="counter()">
+
+                <button @click="count++"> Incrementar</button>
+                <button @click="count--"> Decrementar</button>
+
+                <p :text="count"></p>
+
+            </div>
+
+        </div>
+        <!--  -->
+
+        <script>
+            function counter() {
+                return { count: 0 }
+            }
+        </script>
+        <!-- 
+  -->
+
+
+        <!--  -->
+        <div>
+            <div style="height: 150vh;"></div>
+
+            <h1 class="text-4xl font-bold" @intersect.once="$el.animate([
+                { opacity: 1 },
+                { opacity: 0 },
+                { opacity: 1 },
+
+            ], { duration: 500 })">Hola mirame</h1>
+
+            <div style="height: 150vh;"></div>
+
+        </div>
+
+        <!--  -->
+
+
+
+        <!-- ref -->
+        <input a-ref="campoNombre" class="border-gray-300 b">
+        <button @click="$refs.campoNombre.focus()">Enfocar campo</button>
+        <!--  -->
+
+
+        <br>
+        <br>
+        <br>
+
+        <!-- datepicker -->
+        <div>
+            <input type="text" a-init="new Pikaday({ field: $el })">
+        </div>
+        <!-- end datepicker -->
+
+
+        <!--  -->
+        <div a-def="{ aceptado: false }">
+            <input type="checkbox" :checked="aceptado" @checked="aceptado = !aceptado" />
+            <p>Términos aceptados: <span :text="aceptado"></span></p>
+        </div>
+        <!--  -->
+
+        <br><br><br>
+        <!--  -->
+        <div a-def="{
+        tasks: [],
+        newTask: '',
+        addTask(task) {
+            if(!task) return;
+            this.tasks.push({ text: task, done: false });
+            this.newTask = '';
+        }
+    }">
+            <input @keyup.enter="addTask($event.target.value)" placeholder="Press Enter to add tasks" />
+            <ul>
+                <template a-for="task in tasks">
+                    <li>
+                        <input type="checkbox" />
+                        <span :class="{ 'done': task.done }" :text="task.text"></span>
+                    </li>
+                </template>
+            </ul>
+        </div>
+        <!--  -->
+
+
+        <!-- submit form -->
+        <div a-def="{
+            name: '',
+            email: '',
+            submit() {
+                alert(`Name: ${this.name} \nEmail: ${this.email}`)
+            }
+        }">
+            <form @submit.prevent="submit()">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" :value="name" @input="name = $event.target.value">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" :value="email" @input="email = $event.target.value">
+                </div>
+                <button class="btn primary">Submit</button>
+            </form>
+        </div>
+        <!--  -->
+        <br><br><br>
+
+
+
+        <!-- <div a-init="(() => { console.log('Directiva a-init está funcionando en el contenedor principal'); })()">
+            <div a-def="{ usuarios: [] }">
+                <h2>Lista de Usuarios</h2>
+                <ul @for="usuario in usuarios">
+                    <li :text="usuario.name"></li>
+                </ul>
+            </div>
+        </div> -->
+
+
+
+
+
+        <div a-def="{ 
+            users: [],
+            async getUsers() { 
+                const response = await fetch('https://jsonplaceholder.typicode.com/users')
+                this.users = await response.json();
+                console.log(this.users);
+            }
+        }" a-init="getUsers()">
+
+            <h2>Lista de Usuarios</h2>
+            <ul>
+                <template a-for="user in users">
+                    <li :text="user.name"></li>
+                </template>
+            </ul>
+
+        </div>
+        <!--  -->
+
+
+
+        <!--  -->
+        <form a-xhr:post="/home">
+
+            <button type="submit">Save</button>
+
+            <div a-loading.remove>
+                Saving post...
+            </div>
+            <button class="bg-blue-500 px-4 py-2" a-loading.class.remove="bg-blue-500">Save</button>
+        </form>
+
+
+        <style>
+            [a\-loading],
+            [a\-loading\.delay],
+            [a\-loading\.inline-block],
+            [a\-loading\.inline],
+            [a\-loading\.block],
+            [a\-loading\.flex],
+            [a\-loading\.table],
+            [a\-loading\.grid],
+            [a\-loading\.inline-flex] {
+                display: none;
+            }
+
+            [a\-loading\.delay\.shortest],
+            [a\-loading\.delay\.shorter],
+            [a\-loading\.delay\.short],
+            [a\-loading\.delay\.long],
+            [a\-loading\.delay\.longer],
+            [a\-loading\.delay\.longest] {
+                display: none;
+            }
+        </style>
+
+        <!--  -->
+
+        <button @click="$el.innerHTML = 'Hello Word!'"> click me</button>
+
+
+
+
+        <div class="m-8 p-8 bg-white rounded-lg shadow-md" a-def="{
+            items: ['Item 1', 'Item 2', 'Item 3', 'Item 4'],
+            removeItem(index) {
+                this.items = this.items.filter((_, i) => i !== index);
+            }
+        }">
+            <h2 class="text-2xl font-bold mb-4">Item List</h2>
+            <ul class="space-y-2">
+                <template a-for="(item, index) in items">
+                    <div a-if="item === 'Item 3' ">
+                        <li class="flex items-center justify-between bg-gray-100 p-2 rounded">
+                            <span :text="item"></span>
+                            <button @click="removeItem(index)"
+                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                Remove
+                            </button>
+                        </li>
+                    </div>
+                </template>
+            </ul>
+            <p a-show="items.length === 0" class="text-gray-500 mt-4">No items left.</p>
+        </div>
+
+
+
+        <div a-def="{ open: false }">
+            <button @click="open = !open">Expand</button>
+
+            <span a-show="open">
+                Content...
+            </span>
+        </div>
+
+
+
+
+
+        <div a-def="dropdown">
+            <button @click="toggle()">Abrir/Cerrar</button>
+            <div a-show="open">
+                Contenido del dropdown
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('asor:init', () => {
+                Asor.component('dropdown', function () {
+                    return {
+                        open: false,
+                        toggle() {
+                            this.open = !this.open;
+                        }
+                    };
+                });
+            });
+        </script>
+
+
+
+<div a-def="{ texto: 'amor' }">
+
+    <input type="text" :value="texto" />
+    <p :text="texto"></p>
+
+</div>
+
+ <a href="https://pinterest.com" a-navigate>ir a google</a>
+
+
+
+
+ 
+        <div class="py-10"></div>
+        <!--  -->
+        <!--  -->
+</body>
+
+</html>
