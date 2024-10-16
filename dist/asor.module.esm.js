@@ -70,6 +70,10 @@ var dispatch = (target, name, detail, options = {}) => {
 var on = (eventName, callback) => listen(window, eventName, (e) => e.__asor && callback(e));
 var dispatchGlobal = (name, detail) => dispatch(window, name, detail);
 var dispatchSelf = (target, name, detail) => dispatch(target, name, detail, { bubbles: false });
+var clearAllListeners = () => {
+  events.forEach((pooled) => pooled.clear());
+  events.clear();
+};
 
 // features/supportSubscribers.js
 var subscribers = /* @__PURE__ */ new WeakMap();
@@ -178,7 +182,7 @@ var normalizeDirectiveName = (name) => {
   return name.startsWith("a-") ? name : `a-${name}`;
 };
 var directive = (name, handler) => directiveHandlers.set(name, handler);
-var initializeDirectives = () => findElementsWithAsorDirectives().forEach(initDirectives);
+var mount = (root = document.body) => findElementsWithAsorDirectives(root).forEach(initDirectives);
 function initDirectives(el) {
   if (!el) return handleError(`Undefined element: ${el}`);
   const manager = getDirectives(el);
@@ -310,7 +314,7 @@ function start(forceInit = false) {
     dispatch(document, "asor:init");
     dispatch(document, "asor:initializing");
     requestAnimationFrame(() => {
-      initializeDirectives();
+      mount();
       initialized = true;
       dispatch(document, "asor:initialized");
     });
@@ -320,6 +324,7 @@ function start(forceInit = false) {
 }
 function stop(callback = null) {
   if (!initialized) return;
+  clearAllListeners();
   if (window.asor) delete window.asor;
   if (callback && isFunction(callback)) callback();
   dispatch(document, "asor:stopped");
@@ -2184,8 +2189,11 @@ directive("id", async ({ el, directive: directive2 }) => {
 var Asor = {
   on,
   stop,
+  warn,
+  error: handleError,
   store: handleStore,
   start,
+  mount,
   evaluate: evaluateInContext,
   directive,
   component: registerComponent,

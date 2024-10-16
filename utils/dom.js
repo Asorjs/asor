@@ -32,7 +32,7 @@ export function findElementsWithAsorDirectives(root = document.body, prefixes = 
       }
     );
     let currentNode;
-    while ((currentNode = iterator.nextNode())) // Corregido
+    while ((currentNode = iterator.nextNode()))
       elements.push(currentNode);
     return elements;
 }

@@ -22,9 +22,9 @@ const normalizeDirectiveName = (name) => {
 
 export const directive = (name, handler) => directiveHandlers.set(name, handler);
 
-export const initializeDirectives = () => findElementsWithAsorDirectives().forEach(initDirectives);
+export const mount = (root = document.body) => findElementsWithAsorDirectives(root).forEach(initDirectives);
 
-export function initDirectives(el) {
+export function initDirectives(el) {    
     if (!el) return handleError(`Undefined element: ${el}`);
 
     const manager = getDirectives(el);

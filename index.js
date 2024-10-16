@@ -5,13 +5,18 @@ import { onDataChange } from "./features/supportSubscribers.js";
 import { evaluateInContext as evaluate} from "./features/supportEvaluateExpression.js";
 import { handleStore as store } from "./features/supportStore.js";
 import { registerComponent as component } from "./features/supportComponents.js";
+import { mount } from "./directives.js";
+import { handleError  as error, warn } from "./utils/logger.js";
 import "./directives/index.js";
 
 const Asor = {
     on,
     stop,
+    warn,
+    error,
     store,
     start,
+    mount,
     evaluate,
     directive,
     component,
