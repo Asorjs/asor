@@ -21,10 +21,6 @@ export function hasComponent(name) {
   return components.has(name);
 }
 
-export function clearComponent(name) {
-  return components.has(name);
-}
-
 export const executeComponentFunction = (expression, el) => {
   const componentFunction = getComponent(expression);
   try {
