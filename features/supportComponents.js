@@ -1,5 +1,7 @@
 import { handleError } from "../utils/logger";
 import { prepareContext } from "./supportContext";
+import { isFunction } from "../utils/types";
+import { safeCall } from "./utils/logger";
 
 const components = new Map();
 
@@ -20,17 +22,34 @@ export function hasComponent(name) {
   return components.has(name);
 }
 
-export const executeComponentFunction = (expression, el) => {
-    const componentFunction = getComponent(expression);
-    try {
-        const context = prepareContext(el, {});        
-        return componentFunction(context);
-    } catch (error) {
-        handleError(`Error executing component: ${error.message}`, {
-            el,
-            expression,
-        });
+export function clearComponent(name) {
+  return components.has(name);
+}
 
-        return null;
-    }
+export const executeComponentFunction = (expression, el) => {
+  const componentFunction = getComponent(expression);
+  try {
+    const context = prepareContext(el, {});
+    return componentFunction(context);
+  } catch (error) {
+    handleError(`Error executing component: ${error.message}`, {
+      el,
+      expression,
+    });
+
+    return null;
+  }
 };
+
+export function destroyComponets() {
+  components.forEach((i, el) => {
+    if (i && isFunction(i.destroy)) {
+      safeCall(() => i.destroy(), {
+        el,
+        expression: "destroy()",
+        message: `Error executing destroy() for component.`,
+      });
+    }
+  });
+  components.clear();
+}
