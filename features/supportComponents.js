@@ -37,7 +37,7 @@ export const executeComponentFunction = (expression, el) => {
 };
 
 export function destroyComponets() {
-  components.forEach((i, el) => {
+  components.get().forEach((i, el) => {
     if (i && isFunction(i.destroy)) safeCall(() => i.destroy());
   });
 
