@@ -1,6 +1,6 @@
-import { handleError, safeCall } from "../utils/logger.js";
-import { isFunction, isString } from "../utils/types.js";
-import { prepareContext } from "./supportContext.js";
+import { handleError, safeCall } from "../utils/logger";
+import { isFunction, isString } from "../utils/types";
+import { prepareContext } from "./supportContext";
 
 const expressionCache = new Map();
 const MAX_CACHE_SIZE = 500;

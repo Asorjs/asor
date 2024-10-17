@@ -1,10 +1,10 @@
-import { showHtmlModal } from "./utils/modals.js";
-import { getDirectiveValue } from "./directives.js";
-import { dispatch } from "./utils/events.js";
-import { collectData } from "./features/supportDataCollection.js";
-import { updateDOM } from "./features/supportUpdateDom.js";
-import { isForm } from "./utils/dom.js";
-import { handleError } from "./utils/logger.js";
+import { showHtmlModal } from "./utils/modals";
+import { getDirectiveValue } from "./directives";
+import { dispatch } from "./utils/events";
+import { collectData } from "./features/supportDataCollection";
+import { updateDOM } from "./features/supportUpdateDom";
+import { isForm } from "./utils/dom";
+import { handleError } from "./utils/logger";
 
 const cache = new Map();
 

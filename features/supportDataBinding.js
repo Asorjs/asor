@@ -1,6 +1,6 @@
-import { listen } from "../utils/events.js";
-import { isArray, isObject, isString } from "../utils/types.js";
-import { getData, setData, updateData } from "./supportDataStore.js";
+import { listen } from "../utils/events";
+import { isArray, isObject, isString } from "../utils/types";
+import { getData, setData, updateData } from "./supportDataStore";
 
 const valueGetters = {
     text: el => el.textContent,

@@ -1,5 +1,5 @@
-import { directive } from "../directives.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
+import { directive } from "../directives";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
 
 directive("if", ({ el, directive }) => {
     const { expression } = directive;

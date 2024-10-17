@@ -1,4 +1,4 @@
-import { updateData } from "./supportDataStore.js";
+import { updateData } from "./supportDataStore";
 
 const subscribers = new WeakMap();
 const updateQueue = new Set();

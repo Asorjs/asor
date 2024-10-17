@@ -1,7 +1,7 @@
-import { queueUpdate } from "./supportSubscribers.js";
-import { isFunction, isObject } from "../utils/types.js";
-import { getData } from "./supportDataStore.js";
-import { getPersistentValue, setPersistentValue } from "./supportDataPersist.js";
+import { queueUpdate } from "./supportSubscribers";
+import { isFunction, isObject } from "../utils/types";
+import { getData } from "./supportDataStore";
+import { getPersistentValue, setPersistentValue } from "./supportDataPersist";
 
 const proxyCache = new WeakMap();
 

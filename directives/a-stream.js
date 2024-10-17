@@ -1,6 +1,6 @@
-import { directive, getDirectiveValue } from "../directives.js";
-import { applySwapMethod } from "../features/supportSwapMethod.js";
-import { dispatch } from "../utils/events.js";
+import { directive, getDirectiveValue } from "../directives";
+import { applySwapMethod } from "../features/supportSwapMethod";
+import { dispatch } from "../utils/events";
 
 const RECONNECT_DELAY = 5000;
 

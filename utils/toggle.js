@@ -1,4 +1,4 @@
-import { getStyle } from "./dom.js";
+import { getStyle } from "./dom";
 
 export function toggleState(el, directive, isTruthy, cachedDisplay = null) {
     isTruthy = directive.hasModifier("remove") ? !isTruthy : isTruthy;

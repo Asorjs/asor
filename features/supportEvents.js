@@ -1,9 +1,9 @@
-import { warn, handleError } from "../utils/logger.js";
-import { ifConfirm } from "../utils/confirm.js";
-import { debounce } from "../utils/debounce.js";
-import { throttle } from "../utils/throttle.js";
-import { listen, dispatch } from "../utils/events.js";
-import { isFunction } from "../utils/types.js";
+import { handleError } from "../utils/logger";
+import { ifConfirm } from "../utils/confirm";
+import { debounce } from "../utils/debounce";
+import { throttle } from "../utils/throttle";
+import { listen, dispatch } from "../utils/events";
+import { isFunction } from "../utils/types";
 
 export const keyCodeMap = { enter: 13, tab: 9, delete: 46, esc: 27, space: 32, up: 38, down: 40, left: 37, right: 39, shift: 16, ctrl: 17, alt: 18, meta: 91 };
 export const MODIFIER_KEYS = ["shift", "ctrl", "alt", "meta"];

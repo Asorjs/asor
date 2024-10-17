@@ -1,6 +1,6 @@
-import { directive } from "../directives.js";
-import { getData, setData } from "../features/supportDataStore.js";
-import { findRootElement } from "../utils/dom.js";
+import { directive } from "../directives";
+import { getData, setData } from "../features/supportDataStore";
+import { findRootElement } from "../utils/dom";
 
 directive("ref", ({ el, directive }) => {    
     const refName = directive.expression;

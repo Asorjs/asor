@@ -1,5 +1,5 @@
-import { getDirectiveValue } from "../directives.js";
-import { handleError } from "../utils/logger.js";
+import { getDirectiveValue } from "../directives";
+import { handleError } from "../utils/logger";
 
 export function getSwapDirective(el) {
     return getDirectiveValue(el, "swap")?.expression || "innerHTML";

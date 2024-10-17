@@ -1,5 +1,5 @@
-import { getDirectiveValue } from "../directives.js";
-import { isFunction } from "./types.js";
+import { getDirectiveValue } from "../directives";
+import { isFunction } from "./types";
 
 export async function ifConfirm(el) {
     const confirmDirective = getDirectiveValue(el, "confirm");

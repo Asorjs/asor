@@ -1,6 +1,6 @@
-import { warn } from "../utils/logger.js";
-import { handleError } from "../utils/logger.js";
-import { generateUniqueId } from "../utils/dom.js";
+import { warn } from "../utils/logger";
+import { handleError } from "../utils/logger";
+import { generateUniqueId } from "../utils/dom";
 export const STORAGE_PREFIX = "asor_persist_";
 
 export function $persist(initialValue) {

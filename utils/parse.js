@@ -1,6 +1,6 @@
-import { isObject, isString } from "./types.js";
-import { evaluateExpression } from "../features/supportEvaluateExpression.js";
-import { handleError } from "./logger.js";
+import { isObject, isString } from "./types";
+import { evaluateExpression } from "../features/supportEvaluateExpression";
+import { handleError } from "./logger";
 
 export const parseDataAttribute = (dataAttr, el) => {
     if (isObject(dataAttr)) return dataAttr;

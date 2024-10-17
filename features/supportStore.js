@@ -1,5 +1,5 @@
-import { handleError } from "../utils/logger.js";
-import { updateData } from "./supportDataStore.js";
+import { handleError } from "../utils/logger";
+import { updateData } from "./supportDataStore";
 
 let store = {};
 

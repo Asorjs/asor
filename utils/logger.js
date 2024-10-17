@@ -1,4 +1,4 @@
-import { isFunction } from "./types.js";
+import { isFunction } from "./types";
 
   export function warn(message, context = {}, ...args) {
     logMessage("Warning", message, context, ...args);

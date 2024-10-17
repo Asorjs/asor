@@ -1,5 +1,5 @@
-import { toggleState } from "../utils/toggle.js";
-import { directive } from "../directives.js";
+import { toggleState } from "../utils/toggle";
+import { directive } from "../directives";
 
 const offlineHandlers = new Set();
 const onlineHandlers = new Set();

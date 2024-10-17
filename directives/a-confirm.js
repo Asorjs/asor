@@ -1,5 +1,5 @@
-import { directive } from "../directives.js";
-import { handleError } from "../utils/logger.js";
+import { directive } from "../directives";
+import { handleError } from "../utils/logger";
 
 directive("confirm", ({ el, directive }) => {
     let message = directive.expression;

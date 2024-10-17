@@ -1,8 +1,8 @@
-import { directive } from "../directives.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { onDataChange } from "../features/supportSubscribers.js";
-import { getData } from "../features/supportDataStore.js";
-import { isFunction } from "../utils/types.js";
+import { directive } from "../directives";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
+import { onDataChange } from "../features/supportSubscribers";
+import { getData } from "../features/supportDataStore";
+import { isFunction } from "../utils/types";
 
 directive("effect", ({ el, directive }) => {
     const expression = directive.expression;

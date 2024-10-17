@@ -1,9 +1,9 @@
-import { directive } from "../directives.js";
-import { NavigationManager } from "../features/supportNavigate.js";
-import { ifConfirm } from "../utils/confirm.js";
-import { handleError } from "../utils/logger.js";
-import { setupIntersectObserver } from "../features/supportEvents.js";
-import { listen } from "../utils/events.js";
+import { directive } from "../directives";
+import { NavigationManager } from "../features/supportNavigate";
+import { ifConfirm } from "../utils/confirm";
+import { handleError } from "../utils/logger";
+import { setupIntersectObserver } from "../features/supportEvents";
+import { listen } from "../utils/events";
 
 let navigationManager;
 

@@ -1,8 +1,8 @@
-import { directive } from "../directives.js";
-import { request } from "../request.js";
-import { handleError } from "../utils/logger.js";
-import { getRequestMethodFromDirective, getDefaultEventType, createEventHandler } from "../features/supportEvents.js";
-import { listen } from "../utils/events.js";
+import { directive } from "../directives";
+import { request } from "../request";
+import { handleError } from "../utils/logger";
+import { getRequestMethodFromDirective, getDefaultEventType, createEventHandler } from "../features/supportEvents";
+import { listen } from "../utils/events";
 
 directive("xhr", ({ el, directive, manager }) => {
     const url = directive.expression;

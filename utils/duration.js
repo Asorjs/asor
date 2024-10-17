@@ -1,4 +1,4 @@
-import { isObject, isString } from "./types.js";
+import { isObject, isString } from "./types";
 
 export function extractDuration(modifiers, defaultDuration) {
     if (!(modifiers instanceof Map)) return defaultDuration;

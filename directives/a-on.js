@@ -1,9 +1,9 @@
-import { directive } from "../directives.js";
-import { parseTime } from "../utils/duration.js";
-import { handleError } from "../utils/logger.js";
-import { createEventHandler, setupIntersectObserver, setupOutsideEvent, keyCodeMap, MODIFIER_KEYS } from "../features/supportEvents.js";
-import { listen } from "../utils/events.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
+import { directive } from "../directives";
+import { parseTime } from "../utils/duration";
+import { handleError } from "../utils/logger";
+import { createEventHandler, setupIntersectObserver, setupOutsideEvent, keyCodeMap, MODIFIER_KEYS } from "../features/supportEvents";
+import { listen } from "../utils/events";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
 
 directive("on", ({ el, directive }) => {
     const { modifiers, expression, value } = directive;

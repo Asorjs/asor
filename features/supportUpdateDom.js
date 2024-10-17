@@ -1,10 +1,10 @@
-import { getDirectiveValue } from "../directives.js";
-import { applySwapMethod, getSwapDirective } from "../features/supportSwapMethod.js";
-import { getTargetDirective, removeTargetDirectiveIfNecessary } from "../features/supportTargets.js";
-import { reinitializeDirectives } from "../directives.js";
-import { findElementsWithAsorDirectives } from "../utils/dom.js";
-import { dispatch } from "../utils/events.js";
-import { delData, getData, setData } from "../features/supportDataStore.js";
+import { getDirectiveValue } from "../directives";
+import { applySwapMethod, getSwapDirective } from "../features/supportSwapMethod";
+import { getTargetDirective, removeTargetDirectiveIfNecessary } from "../features/supportTargets";
+import { reinitializeDirectives } from "../directives";
+import { findElementsWithAsorDirectives } from "../utils/dom";
+import { dispatch } from "../utils/events";
+import { delData, getData, setData } from "../features/supportDataStore";
 
 const updateQueue = new Set();
 let isUpdating = false;

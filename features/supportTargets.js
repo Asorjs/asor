@@ -1,5 +1,5 @@
-import { getDirectiveValue } from "../directives.js";
-import { warn } from "../utils/logger.js";
+import { getDirectiveValue } from "../directives";
+import { warn } from "../utils/logger";
 
 const targetCache = new WeakMap();
 

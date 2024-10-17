@@ -1,4 +1,4 @@
-import { handleError } from "./logger.js";
+import { handleError } from "./logger";
 
 export const findAncestor = (el, condition) => {
     while (el && el !== document.body) {

@@ -1,17 +1,52 @@
-import { start, stop } from "./root.js";
-import { directive, getDirectives } from "./directives.js";
-import { dispatchGlobal, dispatchSelf, on } from "./utils/events.js";
-import { onDataChange } from "./features/supportSubscribers.js";
-import { evaluateInContext as evaluate} from "./features/supportEvaluateExpression.js";
-import { handleStore as store } from "./features/supportStore.js";
-import { registerComponent as component } from "./features/supportComponents.js";
-import { mount } from "./directives.js";
-import { handleError  as error, warn } from "./utils/logger.js";
-import { debounce } from "./utils/debounce.js";
-import { throttle } from "./utils/throttle.js";
-import { updateDOM } from "./features/supportUpdateDom.js";
+// import { start, stop } from "./root";
+// import { directive, getDirectives } from "./directives";
+// import { dispatchGlobal, dispatchSelf, on } from "./utils/events";
+// import { onDataChange } from "./features/supportSubscribers";
+// import { evaluateInContext as evaluate} from "./features/supportEvaluateExpression";
+// import { handleStore as store } from "./features/supportStore";
+// import { registerComponent as component } from "./features/supportComponents";
+// import { mount } from "./directives";
+// import { handleError  as error, warn } from "./utils/logger";
+// import { debounce } from "./utils/debounce";
+// import { throttle } from "./utils/throttle";
+// import { updateDOM } from "./features/supportUpdateDom";
+// import "./directives/index";
 
-import "./directives/index.js";
+// const Asor = {
+//     on,
+//     stop,
+//     warn,
+//     error,
+//     store,
+//     start,
+//     mount,
+//     debounce,
+//     throttle,
+//     evaluate,
+//     directive,
+//     component,
+//     updateDOM,
+//     onDataChange,
+//     dispatchSelf,
+//     getDirectives,
+//     dispatchGlobal,
+// };
+
+// export default Asor;
+
+import { start, stop } from "./root";
+import { directive, getDirectives } from "./directives";
+import { dispatchGlobal, dispatchSelf, on } from "./utils/events";
+import { onDataChange } from "./features/supportSubscribers";
+import { evaluateInContext as evaluate} from "./features/supportEvaluateExpression";
+import { handleStore as store } from "./features/supportStore";
+import { registerComponent as component } from "./features/supportComponents";
+import { mount } from "./directives";
+import { handleError  as error, warn } from "./utils/logger";
+import { debounce } from "./utils/debounce";
+import { throttle } from "./utils/throttle";
+import { updateDOM } from "./features/supportUpdateDom";
+import "./directives/index";
 
 const Asor = {
     on,

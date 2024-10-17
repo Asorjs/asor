@@ -1,6 +1,6 @@
-import { directive, getDirectiveValue } from "../directives.js";
-import { listen } from "../utils/events.js";
-import { extractDuration } from "../utils/duration.js";
+import { directive, getDirectiveValue } from "../directives";
+import { listen } from "../utils/events";
+import { extractDuration } from "../utils/duration";
 
 directive("transition", ({ el, directive }) => {
     const options = parseTransitionOptions(directive);

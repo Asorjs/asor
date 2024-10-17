@@ -1,11 +1,11 @@
-import { directive } from "../directives.js";
-import { handleError, warn } from "../utils/logger.js";
-import { parseForExpression } from "../utils/parse.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { appendItems } from "../features/supportBucleFor.js";
-import { isNumber, isUndefined } from "../utils/types.js";
-import { findAncestor } from "../utils/dom.js";
-import { onDataChange } from "../features/supportSubscribers.js";
+import { directive } from "../directives";
+import { handleError, warn } from "../utils/logger";
+import { parseForExpression } from "../utils/parse";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
+import { appendItems } from "../features/supportBucleFor";
+import { isNumber, isUndefined } from "../utils/types";
+import { findAncestor } from "../utils/dom";
+import { onDataChange } from "../features/supportSubscribers";
 
 directive("for", ({ el, directive }) => {
     const iteratorNames = parseForExpression(directive.expression);

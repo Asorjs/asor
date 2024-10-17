@@ -1,6 +1,6 @@
-import { directive } from "../directives.js";
-import { generateUniqueId } from "../utils/dom.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
+import { directive } from "../directives";
+import { generateUniqueId } from "../utils/dom";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
 
 directive("id", async ({ el, directive }) => {
     const names = await evaluateInContext(el, directive.expression?.trim());

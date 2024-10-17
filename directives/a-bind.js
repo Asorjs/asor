@@ -1,11 +1,11 @@
-import { directive } from "../directives.js";
-import { setupInputEvent, updateElement } from "../features/supportDataBinding.js";
-import { handleError } from "../utils/logger.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { getData } from "../features/supportDataStore.js";
-import { findAncestor } from "../utils/dom.js";
-import { isUndefined } from "../utils/types.js";
-import { onDataChange } from "../features/supportSubscribers.js";
+import { directive } from "../directives";
+import { setupInputEvent, updateElement } from "../features/supportDataBinding";
+import { handleError } from "../utils/logger";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
+import { getData } from "../features/supportDataStore";
+import { findAncestor } from "../utils/dom";
+import { isUndefined } from "../utils/types";
+import { onDataChange } from "../features/supportSubscribers";
 
 directive("bind", ({ el, directive}) => {
     const bindType = directive.value || "text";

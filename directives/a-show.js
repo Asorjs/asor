@@ -1,10 +1,10 @@
-import { directive } from "../directives.js";
-import { dispatch } from "../utils/events.js";
-import { getDirectiveValue } from "../directives.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { isUndefined } from "../utils/types.js";
-import { onDataChange } from "../features/supportSubscribers.js";
-import { findRootElement } from "../utils/dom.js";
+import { directive } from "../directives";
+import { dispatch } from "../utils/events";
+import { getDirectiveValue } from "../directives";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
+import { isUndefined } from "../utils/types";
+import { onDataChange } from "../features/supportSubscribers";
+import { findRootElement } from "../utils/dom";
 
 directive("show", ({ el, directive }) => {
     const { expression, modifiers } = directive;

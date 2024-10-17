@@ -1,6 +1,6 @@
-import { getData, setData } from './features/supportDataStore.js';
-import { findElementsWithAsorDirectives } from './utils/dom.js';
-import { handleError } from './utils/logger.js';
+import { getData, setData } from './features/supportDataStore';
+import { findElementsWithAsorDirectives } from './utils/dom';
+import { handleError } from './utils/logger';
 
 const directiveCache = new WeakMap();
 const directiveHandlers = new Map();

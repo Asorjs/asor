@@ -1,7 +1,7 @@
-import { getData } from "./supportDataStore.js";
-import { findDefElement, generateUniqueId } from "../utils/dom.js";
-import { dispatch } from "../utils/events.js";
-import { getStore } from "./supportStore.js";
+import { getData } from "./supportDataStore";
+import { findDefElement, generateUniqueId } from "../utils/dom";
+import { dispatch } from "../utils/events";
+import { getStore } from "./supportStore";
 
 const SAFE_FUNCTIONS = {
     parseInt,

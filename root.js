@@ -1,7 +1,7 @@
-import { warn } from "./utils/logger.js";
-import { clearAllListeners, dispatch } from "./utils/events.js";
-import { mount } from "./directives.js";
-import { isFunction } from "./utils/types.js";
+import { warn } from "./utils/logger";
+import { clearAllListeners, dispatch } from "./utils/events";
+import { mount } from "./directives";
+import { isFunction } from "./utils/types";
 
 let initialized = false;
 

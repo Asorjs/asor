@@ -1,5 +1,5 @@
-import { getDirectiveValue } from "../directives.js";
-import { handleError } from "../utils/logger.js";
+import { getDirectiveValue } from "../directives";
+import { handleError } from "../utils/logger";
 
 export function collectData(el) {
     return new DataCollection(el);

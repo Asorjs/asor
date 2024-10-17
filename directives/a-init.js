@@ -1,7 +1,7 @@
-import { directive } from "../directives.js";
-import { getData } from "../features/supportDataStore.js";
-import { evaluateInContext } from "../features/supportEvaluateExpression.js";
-import { handleError } from "../utils/logger.js";
+import { directive } from "../directives";
+import { getData } from "../features/supportDataStore";
+import { evaluateInContext } from "../features/supportEvaluateExpression";
+import { handleError } from "../utils/logger";
 
 directive("init", ({ el, directive }) => {
     const expression = directive.expression?.trim();

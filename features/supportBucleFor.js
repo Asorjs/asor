@@ -1,9 +1,8 @@
-import { getDirectiveValue, ifElementHasAnyDirective, initDirectives } from "../directives.js";
-import { findElementsWithAsorDirectives } from '../utils/dom.js';
-import { handleError, warn } from "../utils/logger.js";
-import { isObject } from "../utils/types.js";
-import { setData, updateData } from "./supportDataStore.js";
-import { evaluateInContext } from "./supportEvaluateExpression.js";
+import { getDirectiveValue, ifElementHasAnyDirective, initDirectives } from "../directives";
+import { findElementsWithAsorDirectives } from '../utils/dom';
+import { handleError, warn } from "../utils/logger";
+import { setData, updateData } from "./supportDataStore";
+import { evaluateInContext } from "./supportEvaluateExpression";
 
 export async function createItemElement(templateContent, item, key, length, parentData, iteratorNames, el) {
     const template = document.createElement("template");

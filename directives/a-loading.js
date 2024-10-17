@@ -1,6 +1,6 @@
-import { directive } from "../directives.js";
-import { toggleState } from "../utils/toggle.js";
-import { listen } from "../utils/events.js";
+import { directive } from "../directives";
+import { toggleState } from "../utils/toggle";
+import { listen } from "../utils/events";
 
 directive("loading", ({ el, directive }) => {
     const delays = { shortest: 50, shorter: 100, short: 150, default: 200, long: 300, longer: 500, longest: 1000 };

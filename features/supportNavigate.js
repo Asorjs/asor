@@ -1,8 +1,8 @@
-import { PBar } from "./supportProgressBar.js";
-import { handleError } from "../utils/logger.js";
-import { warn } from "../utils/logger.js";
-import { dispatch } from "../utils/events.js";
-import { isFunction } from "../utils/types.js";
+import { PBar } from "./supportProgressBar";
+import { handleError } from "../utils/logger";
+import { warn } from "../utils/logger";
+import { dispatch } from "../utils/events";
+import { isFunction } from "../utils/types";
 
 const MAX_CACHE_SIZE = 50;
 

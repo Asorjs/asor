@@ -1,4 +1,4 @@
-import { getMetaContent } from "../utils/dom.js";
+import { getMetaContent } from "../utils/dom";
 
 export class PBar {
     static DEFAULT_OPTIONS = {
