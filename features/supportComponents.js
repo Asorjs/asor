@@ -43,13 +43,8 @@ export const executeComponentFunction = (expression, el) => {
 
 export function destroyComponets() {
   components.forEach((i, el) => {
-    if (i && isFunction(i.destroy)) {
-      safeCall(() => i.destroy(), {
-        el,
-        expression: "destroy()",
-        message: `Error executing destroy() for component.`,
-      });
-    }
+    if (i && isFunction(i.destroy)) safeCall(() => i.destroy());
   });
+  
   components.clear();
 }
