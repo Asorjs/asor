@@ -35,11 +35,3 @@ export const executeComponentFunction = (expression, el) => {
     return null;
   }
 };
-
-export function destroyComponets() {
-  components.get().forEach((i, el) => {
-    if (i && isFunction(i.destroy)) safeCall(() => i.destroy());
-  });
-
-  components.clear();
-}
