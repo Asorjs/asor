@@ -1,7 +1,6 @@
-import { handleError } from "../utils/logger";
+import { handleError, safeCall } from "../utils/logger";
 import { prepareContext } from "./supportContext";
 import { isFunction } from "../utils/types";
-import { safeCall } from "./utils/logger";
 
 const components = new Map();
 
@@ -45,6 +44,6 @@ export function destroyComponets() {
   components.forEach((i, el) => {
     if (i && isFunction(i.destroy)) safeCall(() => i.destroy());
   });
-  
+
   components.clear();
 }
