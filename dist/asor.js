@@ -507,6 +507,166 @@ ${error.message}`;
     }
   };
 
+  // utils/debounce.js
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
+
+  // utils/throttle.js
+  function throttle(fn, limit) {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        fn.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  // features/supportSwapMethod.js
+  function getSwapDirective(el) {
+    return getDirectiveValue2(el, "swap")?.expression || "innerHTML";
+  }
+  var swapFunctions = {
+    innerHTML: (el, content) => {
+      el.innerHTML = content;
+    },
+    outerHTML: (el, content) => {
+      el.outerHTML = content;
+    },
+    beforebegin: (el, content) => {
+      el.insertAdjacentHTML("beforebegin", content);
+    },
+    afterbegin: (el, content) => {
+      el.insertAdjacentHTML("afterbegin", content);
+    },
+    beforeend: (el, content) => {
+      el.insertAdjacentHTML("beforeend", content);
+    },
+    afterend: (el, content) => {
+      el.insertAdjacentHTML("afterend", content);
+    },
+    replace: (el, content) => {
+      el.replaceWith(...createNodesFromHTML(content));
+    },
+    append: (el, content) => {
+      el.append(...createNodesFromHTML(content));
+    },
+    prepend: (el, content) => {
+      el.prepend(...createNodesFromHTML(content));
+    }
+  };
+  function applySwapMethod(el, content, swapMethod) {
+    try {
+      const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
+      swapFunction(el, content);
+    } catch (error) {
+      handleError(`Error applying swap method "${swapMethod}":`, error);
+    }
+  }
+  var createNodesFromHTML = (content) => {
+    const temp = document.createElement("div");
+    temp.innerHTML = content;
+    return temp.childNodes;
+  };
+
+  // features/supportTargets.js
+  var targetCache = /* @__PURE__ */ new WeakMap();
+  function getTargetDirective(el) {
+    if (targetCache.has(el)) return targetCache.get(el);
+    const target = getDirectiveValue2(el, "target");
+    if (target) {
+      const selector = target.expression?.trim();
+      if (selector) {
+        const element = document.querySelector(selector);
+        if (element) {
+          targetCache.set(el, element);
+          return element;
+        }
+        warn(`Target element "${selector}" not found. Using original element.`);
+      }
+    }
+    targetCache.set(el, el);
+    return el;
+  }
+  function removeTargetDirectiveIfNecessary(el) {
+    const target = getDirectiveValue2(el, "target");
+    if (target?.modifiers.includes("once")) {
+      el.removeAttribute(target.directive);
+      targetCache.delete(el);
+    }
+  }
+
+  // features/supportUpdateDom.js
+  var updateQueue2 = /* @__PURE__ */ new Set();
+  var isUpdating = false;
+  async function updateDOM(element, responseHTML) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(responseHTML, "text/html");
+    const target = getTargetDirective(element);
+    const swapMethod = getSwapDirective(target);
+    const newContent = doc.body.innerHTML;
+    const oldDOM = target.cloneNode(true);
+    queueDomUpdate(target, () => {
+      applySwapMethod(target, newContent, swapMethod);
+      updateDirectivesAndState(oldDOM, target);
+      applyTransition(target);
+      removeTargetDirectiveIfNecessary(target);
+    });
+  }
+  function updateDirectivesAndState(oldDOM, newDOM) {
+    const oldElements = findElementsWithAsorDirectives(oldDOM);
+    const newElements = findElementsWithAsorDirectives(newDOM);
+    newElements.forEach((newEl) => {
+      const oldEl = oldElements.find((el) => el.isEqualNode(newEl));
+      if (oldEl) {
+        const oldData = getData(oldEl);
+        if (oldData) setData(newEl, oldData);
+      }
+    });
+    reinitializeDirectives(newDOM, oldDOM);
+    oldElements.forEach((oldEl) => {
+      if (!newElements.some((newEl) => newEl.isEqualNode(oldEl))) cleanupElement(oldEl);
+    });
+  }
+  function cleanupElement(el) {
+    const data = getData(el);
+    if (data && data.$refs) {
+      Object.keys(data.$refs).forEach((refName) => {
+        if (data.$refs[refName] === el) delete data.$refs[refName];
+      });
+    }
+    delData(el);
+    Array.from(el.children).forEach(cleanupElement);
+  }
+  function applyTransition(el) {
+    const transition = getDirectiveValue2(el, "transition");
+    if (!transition) return;
+    dispatch(el, "asor:transition", { visible: true });
+  }
+  function queueDomUpdate(el, updateFn) {
+    updateQueue2.add({ el, updateFn });
+    scheduleUpdate2();
+  }
+  function scheduleUpdate2() {
+    if (!isUpdating) {
+      isUpdating = true;
+      requestAnimationFrame(flushDomUpdates);
+    }
+  }
+  function flushDomUpdates() {
+    for (const { el, updateFn } of updateQueue2) {
+      updateFn(el);
+    }
+    updateQueue2.clear();
+    isUpdating = false;
+  }
+
   // directives/a-ref.js
   directive("ref", ({ el, directive: directive2 }) => {
     const refName = directive2.expression;
@@ -1037,145 +1197,6 @@ ${error.message}`;
     }
   };
 
-  // features/supportSwapMethod.js
-  function getSwapDirective(el) {
-    return getDirectiveValue2(el, "swap")?.expression || "innerHTML";
-  }
-  var swapFunctions = {
-    innerHTML: (el, content) => {
-      el.innerHTML = content;
-    },
-    outerHTML: (el, content) => {
-      el.outerHTML = content;
-    },
-    beforebegin: (el, content) => {
-      el.insertAdjacentHTML("beforebegin", content);
-    },
-    afterbegin: (el, content) => {
-      el.insertAdjacentHTML("afterbegin", content);
-    },
-    beforeend: (el, content) => {
-      el.insertAdjacentHTML("beforeend", content);
-    },
-    afterend: (el, content) => {
-      el.insertAdjacentHTML("afterend", content);
-    },
-    replace: (el, content) => {
-      el.replaceWith(...createNodesFromHTML(content));
-    },
-    append: (el, content) => {
-      el.append(...createNodesFromHTML(content));
-    },
-    prepend: (el, content) => {
-      el.prepend(...createNodesFromHTML(content));
-    }
-  };
-  function applySwapMethod(el, content, swapMethod) {
-    try {
-      const swapFunction = swapFunctions[swapMethod] || swapFunctions.innerHTML;
-      swapFunction(el, content);
-    } catch (error) {
-      handleError(`Error applying swap method "${swapMethod}":`, error);
-    }
-  }
-  var createNodesFromHTML = (content) => {
-    const temp = document.createElement("div");
-    temp.innerHTML = content;
-    return temp.childNodes;
-  };
-
-  // features/supportTargets.js
-  var targetCache = /* @__PURE__ */ new WeakMap();
-  function getTargetDirective(el) {
-    if (targetCache.has(el)) return targetCache.get(el);
-    const target = getDirectiveValue2(el, "target");
-    if (target) {
-      const selector = target.expression?.trim();
-      if (selector) {
-        const element = document.querySelector(selector);
-        if (element) {
-          targetCache.set(el, element);
-          return element;
-        }
-        warn(`Target element "${selector}" not found. Using original element.`);
-      }
-    }
-    targetCache.set(el, el);
-    return el;
-  }
-  function removeTargetDirectiveIfNecessary(el) {
-    const target = getDirectiveValue2(el, "target");
-    if (target?.modifiers.includes("once")) {
-      el.removeAttribute(target.directive);
-      targetCache.delete(el);
-    }
-  }
-
-  // features/supportUpdateDom.js
-  var updateQueue2 = /* @__PURE__ */ new Set();
-  var isUpdating = false;
-  async function updateDOM(element, responseHTML) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(responseHTML, "text/html");
-    const target = getTargetDirective(element);
-    const swapMethod = getSwapDirective(target);
-    const newContent = doc.body.innerHTML;
-    const oldDOM = target.cloneNode(true);
-    queueDomUpdate(target, () => {
-      applySwapMethod(target, newContent, swapMethod);
-      updateDirectivesAndState(oldDOM, target);
-      applyTransition(target);
-      removeTargetDirectiveIfNecessary(target);
-    });
-  }
-  function updateDirectivesAndState(oldDOM, newDOM) {
-    const oldElements = findElementsWithAsorDirectives(oldDOM);
-    const newElements = findElementsWithAsorDirectives(newDOM);
-    newElements.forEach((newEl) => {
-      const oldEl = oldElements.find((el) => el.isEqualNode(newEl));
-      if (oldEl) {
-        const oldData = getData(oldEl);
-        if (oldData) setData(newEl, oldData);
-      }
-    });
-    reinitializeDirectives(newDOM, oldDOM);
-    oldElements.forEach((oldEl) => {
-      if (!newElements.some((newEl) => newEl.isEqualNode(oldEl))) cleanupElement(oldEl);
-    });
-  }
-  function cleanupElement(el) {
-    const data = getData(el);
-    if (data && data.$refs) {
-      Object.keys(data.$refs).forEach((refName) => {
-        if (data.$refs[refName] === el) delete data.$refs[refName];
-      });
-    }
-    delData(el);
-    Array.from(el.children).forEach(cleanupElement);
-  }
-  function applyTransition(el) {
-    const transition = getDirectiveValue2(el, "transition");
-    if (!transition) return;
-    dispatch(el, "asor:transition", { visible: true });
-  }
-  function queueDomUpdate(el, updateFn) {
-    updateQueue2.add({ el, updateFn });
-    scheduleUpdate2();
-  }
-  function scheduleUpdate2() {
-    if (!isUpdating) {
-      isUpdating = true;
-      requestAnimationFrame(flushDomUpdates);
-    }
-  }
-  function flushDomUpdates() {
-    for (const { el, updateFn } of updateQueue2) {
-      updateFn(el);
-    }
-    updateQueue2.clear();
-    isUpdating = false;
-  }
-
   // request.js
   var cache = /* @__PURE__ */ new Map();
   var request = () => new Request();
@@ -1260,27 +1281,6 @@ ${error.message}`;
       else
         resolve(true);
     });
-  }
-
-  // utils/debounce.js
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
-    };
-  }
-
-  // utils/throttle.js
-  function throttle(fn, limit) {
-    let inThrottle;
-    return function(...args) {
-      if (!inThrottle) {
-        fn.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
   }
 
   // features/supportEvents.js
@@ -2195,11 +2195,15 @@ ${error.message}`;
     store: handleStore,
     start,
     mount,
+    debounce,
+    throttle,
     evaluate: evaluateInContext,
     directive,
     component: registerComponent,
+    updateDOM,
     onDataChange,
     dispatchSelf,
+    getDirectives,
     dispatchGlobal
   };
   var asor_default = Asor;
