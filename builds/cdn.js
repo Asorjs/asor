@@ -1,4 +1,4 @@
-import Asor from '../index.js'
+import Asor from './../index'
 
 window.Asor = Asor
 

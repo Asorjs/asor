@@ -16,7 +16,7 @@
     const details = { message, ...context };
     setTimeout(() => logMessage("Error", message, details), 0);
   }
-  function safeCall(fn, options = {}, ...args) {
+  function safeCall2(fn, options = {}, ...args) {
     const { el, expression, message = "", defaultValue = null, rethrow = false, onError } = options;
     try {
       return fn(...args);
@@ -303,35 +303,6 @@ ${error.message}`;
     });
   }
 
-  // root.js
-  var initialized = false;
-  function start(forceInit = false) {
-    if (initialized && !forceInit) {
-      warn("Asor is already initialized. Skipping re-initialization.");
-      return;
-    }
-    stop();
-    const initialize = () => {
-      dispatch(document, "asor:init");
-      dispatch(document, "asor:initializing");
-      requestAnimationFrame(() => {
-        mount();
-        initialized = true;
-        dispatch(document, "asor:initialized");
-      });
-    };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize);
-    else initialize();
-  }
-  function stop(callback = null) {
-    if (!initialized) return;
-    clearAllListeners();
-    if (window.asor) delete window.asor;
-    if (callback && isFunction(callback)) callback();
-    dispatch(document, "asor:stopped");
-    initialized = false;
-  }
-
   // features/supportStore.js
   var store = {};
   function createStore(initialState = {}) {
@@ -419,6 +390,78 @@ ${error.message}`;
     };
   }
 
+  // features/supportComponents.js
+  var components = /* @__PURE__ */ new Map();
+  function registerComponent(name, componentFunction) {
+    if (typeof componentFunction !== "function") {
+      handleError(`Component "${name}" must be a function.`);
+      return;
+    }
+    components.set(name, componentFunction);
+  }
+  function getComponent(name) {
+    return components.get(name);
+  }
+  function hasComponent(name) {
+    return components.has(name);
+  }
+  function getComponents() {
+    return components.get();
+  }
+  var executeComponentFunction = (expression, el) => {
+    const componentFunction = getComponent(expression);
+    try {
+      const context = prepareContext(el, {});
+      return componentFunction(context);
+    } catch (error) {
+      handleError(`Error executing component: ${error.message}`, {
+        el,
+        expression
+      });
+      return null;
+    }
+  };
+
+  // root.js
+  var initialized = false;
+  function start(forceInit = false) {
+    if (initialized && !forceInit) {
+      warn("Asor is already initialized. Skipping re-initialization.");
+      return;
+    }
+    stop();
+    const initialize = () => {
+      dispatch(document, "asor:init");
+      dispatch(document, "asor:initializing");
+      requestAnimationFrame(() => {
+        mount();
+        initialized = true;
+        dispatch(document, "asor:initialized");
+      });
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize);
+    else initialize();
+  }
+  function stop(callback = null) {
+    if (!initialized) return;
+    const mountedComponents = getComponents();
+    mountedComponents.forEach((componentInstance, el) => {
+      if (componentInstance && isFunction(componentInstance.destroy)) {
+        safeCall(() => componentInstance.destroy(), {
+          el,
+          expression: "destroy()",
+          message: `Error executing destroy() for component.`
+        });
+      }
+    });
+    mountedComponents.clear();
+    clearAllListeners();
+    if (window.asor) delete window.asor;
+    if (callback && isFunction(callback)) callback();
+    dispatch(document, "asor:stopped");
+    initialized = false;
+  }
+
   // features/supportEvaluateExpression.js
   var expressionCache = /* @__PURE__ */ new Map();
   var MAX_CACHE_SIZE = 500;
@@ -462,7 +505,7 @@ ${error.message}`;
   };
   function evaluateExpression(el, expression, context) {
     const errorOptions = createErrorOptions(el, expression);
-    if (isFunction(expression)) return safeCall(expression, errorOptions, context);
+    if (isFunction(expression)) return safeCall2(expression, errorOptions, context);
     if (!isString(expression)) {
       handleError(`Invalid expression type: ${typeof expression}. Expected string or function.`, el, expression);
       return null;
@@ -474,38 +517,9 @@ ${error.message}`;
       compiledFn = buildFunction(expression);
       addToCache(cacheKey, compiledFn);
     }
-    return safeCall(() => compiledFn(fullContext), errorOptions);
+    return safeCall2(() => compiledFn(fullContext), errorOptions);
   }
   var evaluateInContext = (el, expression, additionalContext = {}) => evaluateExpression(el, expression, additionalContext);
-
-  // features/supportComponents.js
-  var components = /* @__PURE__ */ new Map();
-  function registerComponent(name, componentFunction) {
-    if (typeof componentFunction !== "function") {
-      handleError(`Component "${name}" must be a function.`);
-      return;
-    }
-    components.set(name, componentFunction);
-  }
-  function getComponent(name) {
-    return components.get(name);
-  }
-  function hasComponent(name) {
-    return components.has(name);
-  }
-  var executeComponentFunction = (expression, el) => {
-    const componentFunction = getComponent(expression);
-    try {
-      const context = prepareContext(el, {});
-      return componentFunction(context);
-    } catch (error) {
-      handleError(`Error executing component: ${error.message}`, {
-        el,
-        expression
-      });
-      return null;
-    }
-  };
 
   // utils/debounce.js
   function debounce(func, wait) {
