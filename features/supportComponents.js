@@ -21,6 +21,10 @@ export function hasComponent(name) {
   return components.has(name);
 }
 
+export function getComponents() {
+  return components.get();
+}
+
 export const executeComponentFunction = (expression, el) => {
   const componentFunction = getComponent(expression);
   try {

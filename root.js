@@ -2,6 +2,7 @@ import { warn } from "./utils/logger";
 import { clearAllListeners, dispatch } from "./utils/events";
 import { mount } from "./directives";
 import { isFunction } from "./utils/types";
+import { getComponents } from "./features/supportComponents"
 
 let initialized = false;
 
@@ -30,6 +31,21 @@ export function start(forceInit = false) {
 
 export function stop(callback = null) {
     if (!initialized) return;
+
+    const mountedComponents = getComponents();
+
+      // Ejecutar destroy en todos los componentes montados
+    mountedComponents.forEach((componentInstance, el) => {
+        if (componentInstance && isFunction(componentInstance.destroy)) {
+        safeCall(() => componentInstance.destroy(), {
+            el,
+            expression: 'destroy()',
+            message: `Error executing destroy() for component.`
+        });
+        }
+    });
+  
+  mountedComponents.clear(); // Limpiar el mapa de componentes montados
 
     clearAllListeners()
     if (window.asor) delete window.asor;
